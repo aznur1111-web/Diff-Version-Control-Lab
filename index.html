@@ -1,0 +1,1602 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><meta name="description" content="Az Diff & Version Control Lab, a single-file course for diff, merge, sync and version control"><title>Az Diff &amp; VCS Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#111722;--panel:#192230;--panel2:#202b3a;--panel3:#141c27;--line:#2c394b;--line2:#3b4b61;--text:#e8eef7;--muted:#a7b4c7;--subtle:#8190a5;--accent:#8ab4f8;--strong:#c9ddff;--good:#9ed7bd;--warn:#edc477;--bad:#ff929e;--shadow:none;--radius:13px}
+:root[data-theme=light]{color-scheme:light;--bg:#f4f6f8;--panel:#fff;--panel2:#f7f9fb;--panel3:#f0f4f8;--line:#dce2e9;--line2:#cbd4df;--text:#17212d;--muted:#596a7e;--subtle:#718197;--accent:#315fa2;--strong:#244a82;--good:#176b4c;--warn:#8c5c04;--bad:#b33143;--shadow:0 8px 24px rgba(20,35,50,.05)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button,a,select{touch-action:manipulation}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}a{color:var(--accent);text-decoration:none}.muted{color:var(--muted)}.mono,code,pre,textarea{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.topbar{height:64px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:0 22px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text)}.brand-mark{width:34px;height:34px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);display:grid;place-items:center;color:var(--strong);font-weight:850;font-size:14px}.brand strong{display:block;font-size:14px;line-height:1.2}.brand small{display:block;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-top:2px}
+.top-meta{flex:1;color:var(--subtle);font-size:12px;letter-spacing:.02em}
+.top-actions{display:flex;align-items:center;gap:7px}.top-actions label{font-size:11px;color:var(--muted)}
+select,.btn{border:1px solid var(--line2);background:var(--panel3);color:var(--text);border-radius:8px;padding:8px 11px;font-size:12px}.btn{font-weight:600;white-space:nowrap}.btn:hover{border-color:var(--accent);color:var(--strong)}.btn.primary{background:var(--accent);color:#10203a;border-color:var(--accent)}:root[data-theme=light] .btn.primary{color:white}
+.layout{display:grid;grid-template-columns:264px minmax(420px,1fr);max-width:1500px;margin:auto;min-height:calc(100vh - 64px)}
+.sidebar{position:sticky;top:64px;height:calc(100vh - 64px);overflow:auto;border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column}
+.side-title{display:flex;justify-content:space-between;color:var(--subtle);font-size:10px;letter-spacing:.14em;font-weight:800;padding:0 4px 12px}
+.pill,.tag{border:1px solid var(--line2);border-radius:6px;padding:3px 7px;font-size:10px;color:var(--muted);white-space:nowrap}
+.search{display:flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--panel3);height:39px;padding:0 10px;margin-bottom:10px}
+.search input{min-width:0;width:100%;background:transparent;border:0;outline:0;color:var(--text);font-size:12px}
+.search kbd{border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--subtle);font-size:10px}
+.filter{display:block;color:var(--subtle);font-size:11px;margin-bottom:12px}.filter select{display:block;width:100%;max-width:none;margin-top:5px;padding:7px}
+.tree{display:flex;flex-direction:column;gap:12px}
+.group-label{display:flex;justify-content:space-between;color:var(--subtle);font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 5px}
+.link{width:100%;text-align:left;display:flex;gap:8px;align-items:center;background:transparent;border:1px solid transparent;color:var(--muted);padding:7px 8px;border-radius:8px;min-height:34px}
+.link .num{font:10px ui-monospace,monospace;color:var(--subtle);width:19px;flex:none}
+.link .name{font-size:12px;flex:1}.link .done{color:var(--good)}
+.link:hover{background:var(--panel2);color:var(--text)}
+.link.active{background:var(--panel2);border-color:var(--line2);color:var(--strong)}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}
+.progress-row{display:flex;justify-content:space-between;color:var(--subtle);font-size:11px;margin-bottom:7px}
+.progress{height:5px;background:var(--panel2);border-radius:9px;overflow:hidden}.progress>div{height:100%;width:0;background:var(--accent);transition:width .25s}
+.side-actions{display:flex;gap:6px;margin-top:12px}.side-actions .btn{flex:1;padding:7px;font-size:11px}
+main{max-width:920px;width:100%;min-width:0;margin:auto;padding:28px 30px 40px}
+.breadcrumb{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--subtle);margin-bottom:16px}
+.header{padding:2px 2px 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:var(--accent);margin-bottom:9px}
+.header h1{font-size:clamp(27px,3vw,36px);line-height:1.12;letter-spacing:-.035em;margin:0 0 10px;font-weight:700}
+.header p{font-size:14.5px;color:var(--muted);margin:0 0 14px;max-width:740px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag.good{color:var(--good)}.tag.warn{color:var(--warn)}
+.header-actions{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-head{padding:18px 20px 0}.panel-head h2{font-size:15px;margin:0 0 4px;letter-spacing:-.01em;font-weight:650}.panel-head p{font-size:12.5px;color:var(--muted);margin:0}
+.body{padding:16px 20px 20px}
+.idea{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:20px}
+.idea p{font-size:13.5px;color:var(--muted);margin:0 0 13px}
+.mental{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.mental small{color:var(--subtle);font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mental strong{display:block;margin:6px 0;font-size:13px;color:var(--strong)}
+.mental p{font-size:12px;color:var(--muted);margin:0}
+.takeaway{padding:11px 13px;border:1px solid var(--line2);background:var(--panel3);border-radius:8px;color:var(--strong);font-size:12.5px;line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mini{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.mini h3{font-size:12px;margin:0 0 7px;font-weight:650}
+.mini p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.6}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.steps li{counter-increment:s;display:flex;gap:10px;color:var(--muted);font-size:12.5px;line-height:1.55}
+.steps li:before{content:counter(s);width:23px;height:23px;flex:none;display:grid;place-items:center;border:1px solid var(--line2);background:var(--panel3);border-radius:6px;color:var(--accent);font:11px ui-monospace,monospace}
+.pseudo{white-space:pre-wrap;overflow:auto;background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:14px;font:12px/1.75 ui-monospace,monospace;color:var(--strong);margin:0}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);text-align:left;padding:9px 10px;vertical-align:top}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle);font-weight:700}
+td{color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{padding:12px;background:var(--panel3);border:1px solid var(--line);border-radius:9px}
+.tile span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle)}
+.tile strong{display:block;color:var(--strong);font:700 14px ui-monospace,monospace;margin-top:6px}
+.tile small{font-size:10.5px;color:var(--muted);display:block;margin-top:2px}
+.notice{padding:12px 13px;background:var(--panel3);border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));border-radius:9px;font-size:12.5px;color:var(--muted);line-height:1.65}
+.notice strong{color:var(--warn)}
+.notice.info{border-color:var(--line2)}.notice.info strong{color:var(--accent)}
+.lab-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lab-top label{font-size:11.5px;color:var(--muted)}
+.lab-input{width:100%;min-height:110px;resize:vertical;background:var(--panel3);border:1px solid var(--line2);border-radius:9px;padding:11px;color:var(--text);font:12px/1.65 ui-monospace,monospace;margin:11px 0}
+.lab-output{padding:13px;background:var(--panel3);border:1px solid var(--line);border-radius:9px;min-height:70px;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--strong);font:12px/1.75 ui-monospace,monospace;overflow-x:auto}
+.lab-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.label{font-size:10px;color:var(--subtle);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.code-head{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:11px 13px;background:var(--panel3);border-bottom:1px solid var(--line)}
+.code-editor{display:block;width:100%;min-height:220px;resize:vertical;border:0;border-radius:0;background:var(--panel3);color:var(--text);padding:15px;font:12px/1.7 ui-monospace,monospace;outline:0}
+.code-foot{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 13px;color:var(--subtle);font-size:10px;border-top:1px solid var(--line)}
+.practice{border:1px solid var(--line);background:var(--panel3);border-radius:9px;padding:13px}
+.practice summary{cursor:pointer;font-size:12.5px;font-weight:600}
+.practice p{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.65}
+.references{display:flex;flex-direction:column;gap:8px}
+.references a{font-size:12.5px;overflow-wrap:anywhere}
+.home-hero{padding:30px;background:linear-gradient(150deg,var(--panel),var(--panel3));border:1px solid var(--line);border-radius:14px;margin-bottom:16px}
+.home-hero h1{font-size:clamp(30px,3.6vw,42px);line-height:1.1;letter-spacing:-.04em;margin:8px 0 14px;font-weight:700}
+.home-hero p{color:var(--muted);font-size:14px;max-width:720px;margin:0 0 18px;line-height:1.65}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat strong{display:block;font:700 22px ui-monospace,monospace;color:var(--strong)}
+.stat span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px}
+.chapter-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chapter-card{padding:14px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
+.chapter-card:hover{border-color:var(--accent)}
+.chapter-card .num{font-size:10px;color:var(--accent);letter-spacing:.09em;font-weight:800}
+.chapter-card strong{display:block;font-size:13px;margin:5px 0;font-weight:650}
+.chapter-card p{font-size:11.5px;color:var(--muted);margin:0;line-height:1.55}
+.toast{position:fixed;z-index:99;bottom:20px;left:50%;transform:translate(-50%,10px);opacity:0;pointer-events:none;background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:11px 15px;box-shadow:var(--shadow);font-size:12px;transition:opacity .14s,transform .14s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.footer{font-size:10.5px;color:var(--subtle);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 2px 14px;align-items:center}
+.plot{width:100%;height:auto;display:block;background:var(--bg);border:1px solid var(--line);border-radius:8px;margin:6px 0}
+.diff-line{display:block;font:12px/1.6 ui-monospace,monospace;padding:0 6px;border-radius:3px}
+.diff-add{background:rgba(158,215,189,.18);color:var(--good)}
+.diff-del{background:rgba(255,146,158,.18);color:var(--bad)}
+.diff-ctx{color:var(--muted)}
+.diff-mark{color:var(--subtle);margin-right:6px}
+.chip{display:inline-block;padding:2px 7px;margin:2px;background:var(--panel3);border:1px solid var(--line2);border-radius:5px;font:11px ui-monospace,monospace;color:var(--strong)}
+.chip.hi{background:var(--accent);color:#10203a;border-color:var(--accent)}
+.chip.ok{background:var(--good);color:#0a2818;border-color:var(--good)}
+.chip.bad{background:var(--bad);color:#2a0a10;border-color:var(--bad)}
+@media(max-width:1080px){.layout{grid-template-columns:240px minmax(360px,1fr)}main{padding:24px 22px 36px}}
+@media(max-width:840px){.topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:10px;padding:10px 14px}.top-meta{display:none}.top-actions{margin-left:auto}.top-actions label{display:none}.layout{display:block}.sidebar{position:static;height:auto;max-height:none;border:0;border-bottom:1px solid var(--line);padding:14px}.tree{max-height:260px;overflow:auto}.side-foot{display:none}main{padding:20px 15px 32px}.idea{grid-template-columns:1fr}.mental{order:-1}.stats{grid-template-columns:1fr 1fr}.chapter-cards,.two,.lab-cols{grid-template-columns:1fr}}
+@media(max-width:520px){.brand small{display:none}.brand-mark{width:30px;height:30px}.brand strong{font-size:12px}.top-actions select{max-width:92px;padding:6px;font-size:10px}.top-actions .btn{padding:6px 8px;font-size:10px}.chapter-cards{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.home-hero{padding:20px}.home-hero h1{font-size:30px}.header h1{font-size:27px}.body,.panel-head{padding-left:15px;padding-right:15px}.footer{display:block}.footer span{display:block;margin-bottom:6px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+@media print{.topbar,.sidebar,.header-actions,.lab-top,.btn,.toast{display:none!important}.layout{display:block}main{padding:0;max-width:none}.panel,.home-hero{break-inside:avoid;box-shadow:none}body{background:#fff;color:#111}}
+</style></head><body>
+
+<header class="topbar">
+  <a class="brand" href="#home" id="homeLink"><span class="brand-mark">Az</span><span><strong>Az Diff &amp; VCS Lab</strong><small>DIFF · MERGE · SYNC · VERSION CONTROL</small></span></a>
+  <div class="top-meta" id="catalogCount"></div>
+  <div class="top-actions">
+    <label for="themeSelect">Theme</label>
+    <select id="themeSelect" aria-label="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+    <button class="btn" id="printBtn">Print / PDF</button>
+    <button class="btn" id="exportBtn">Export</button>
+    <button class="btn" id="importBtn">Import</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Course navigation">
+    <div class="side-title"><span>COURSE CATALOG</span><span class="pill" id="lessonCount">0</span></div>
+    <div class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search diff, merge, sync…" aria-label="Search lessons"><kbd>/</kbd></div>
+    <label class="filter">Chapter<select id="chapterFilter"><option value="all">All chapters</option></select></label>
+    <nav class="tree" id="courseTree" aria-label="Lessons"></nav>
+    <div class="side-foot">
+      <div class="progress-row"><span>COURSE PROGRESS</span><strong id="progressText">0 / 0</strong></div>
+      <div class="progress" id="progressBar"><div id="progressFill"></div></div>
+      <div class="side-actions"><button class="btn" data-page="home">Home</button><button class="btn" data-page="progress">Progress</button></div>
+    </div>
+  </aside>
+  <main id="mainView" tabindex="-1" aria-live="polite"></main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   Az Diff & VCS Lab
+   ============================================================ */
+const CHAPTERS=[
+ {id:"foundations",title:"1. Sequence comparison foundations",desc:"LCS, edit scripts, insertion/deletion/substitution costs.",ids:["lcs","edit-script","edit-costs"]},
+ {id:"diff",title:"2. Diff algorithms",desc:"Myers, Hunt-Szymanski, Hunt-McIlroy, patience, histogram.",ids:["myers","hunt-szymanski","patience","histogram"]},
+ {id:"merge",title:"3. Three-way merge",desc:"Common ancestors, conflict detection, merge bases, recursive merge, rename detection.",ids:["three-way","merge-base","rename-detection"]},
+ {id:"structured",title:"4. Structured merging",desc:"Syntax-aware diff, tree edit distance, JSON/XML merge, semantic merge.",ids:["syntax-aware","tree-edit","json-merge","semantic"]},
+ {id:"collab",title:"5. Collaborative editing",desc:"Operational transformation, CRDTs, causal ordering, conflict-free updates.",ids:["ot","crdts","causal-order"]},
+ {id:"sync",title:"6. Synchronization and integrity",desc:"rsync, rolling checksums, Merkle-tree sync, reconciliation.",ids:["rsync","merkle-sync","reconciliation"]},
+ {id:"objects",title:"7. Content-addressed storage",desc:"Git object model, packfiles, delta chains, deduplication, GC.",ids:["git-objects","packfiles","gc"]},
+ {id:"chunking",title:"8. Chunking and large-scale sync",desc:"Content-defined chunking, FastCDC, resumable transfer, block-level deltas.",ids:["cdc","fastcdc","resumable"]}
+];
+
+const D={
+ kind:"Concept",status:"Concept lesson",level:2,demo:"none",demoTitle:"Interactive teaching lab",inputKind:"text",refs:[],codeKey:"generic",
+ input:"Two or more versions of a sequence, file, or structured document.",
+ output:"A diff, a merge, a synchronized state, or a content-addressed object.",
+ invariant:"The result depends on the alignment model and the conflict policy. Breaking them gives silent data loss.",
+ complexity:["Depends on input size","Memory for tables and chains","Measure on representative inputs"],
+ uses:"Use this as one layer inside a larger version control or sync system.",
+ strength:"Fits the problem when its assumptions hold.",
+ limits:"Depends on the alignment model and the conflict policy.",
+ pitfall:"Assuming a diff is unique. Many minimal diffs can exist; the algorithm picks one.",
+ question:"What is the main idea of this lesson?",
+ trace:null
+};
+function mk(o){
+ const steps=o.steps||["Read the input.","Apply the method.","Produce the output.","Check the result."];
+ return Object.assign({},D,{
+  summary:o.summary||"",
+  mental:o.mental||o.title,
+  mentalText:o.mentalText||o.summary||"",
+  problem:o.problem||("How does "+o.title+" work and when is it the right choice?"),
+  steps:steps,
+  trace:o.trace||steps.map((s,i)=>["Step "+(i+1),s,i===steps.length-1?"Verified":"Step done"]),
+  answer:o.answer||o.summary||"",
+  pseudo:o.pseudo||"",
+  sample:o.sample||"",
+  level:o.level||2
+ },o);
+}
+
+const RAW=[
+/* Ch 1 */
+{id:"lcs",title:"Longest common subsequence",level:2,kind:"Foundation",status:"Runnable teaching lab",
+ summary:"The longest common subsequence (LCS) of two sequences is the longest sequence appearing in both without reordering. It is the basis of diff, edit distance and sequence alignment.",
+ mental:"Find the longest shared skeleton between two sequences",
+ mentalText:"Build a table where cell (i,j) holds the LCS length of the first i elements of A and first j of B. Backtrack from the bottom right.",
+ steps:["Build the DP table: L[i][j] = LCS of prefixes.","If A[i]==B[j], L[i][j] = L[i-1][j-1] + 1.","Else L[i][j] = max(L[i-1][j], L[i][j-1]).","Backtrack from (n,m) to reconstruct the LCS."],
+ pseudo:"DP:\n  L[0][j] = 0, L[i][0] = 0\n  for i = 1..n:\n    for j = 1..m:\n      if A[i] == B[j]: L[i][j] = L[i-1][j-1] + 1\n      else:            L[i][j] = max(L[i-1][j], L[i][j-1])\n\nBacktrack:\n  i = n, j = m\n  while i > 0 and j > 0:\n    if A[i] == B[j]: emit A[i]; i--; j--\n    elif L[i-1][j] >= L[i][j-1]: i--\n    else: j--\n\nComplexity:\n  time  O(n m)\n  space O(n m), reducible to O(min(n, m))\n\nRelation to diff:\n  edit distance with insert/delete only = n + m - 2 LCS\n\nHunt-Szymanski:\n  O((r + n) log n) where r is the number of matching pairs\n\nBit-parallel LCS:\n  O(n m / w) with word-parallel bit operations",
+ uses:"Diff, sequence alignment, DNA comparison, plagiarism detection.",
+ strength:"Simple, exact, and the basis for many alignment algorithms.",
+ limits:"Quadratic time and space. Too slow for very large inputs without refinement.",
+ pitfall:"Forgetting that LCS is not unique. Many LCS can exist; the algorithm picks one.",
+ question:"What is the LCS of 'ABCBDAB' and 'BDCABA'?",
+ answer:"'BCBA' (or 'BCAB', 'BDAB'). Length 4. Multiple LCS of the same length exist.",
+ demo:"lcs",sample:"A B C B D A B\nB D C A B A",refs:[
+  ["Cormen, Leiserson, Rivest, Stein, Introduction to Algorithms, 4th ed., MIT Press 2022","https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/"],
+  ["Gusfield, Algorithms on Strings, Trees, and Sequences, Cambridge 1997","https://www.cambridge.org/core/books/algorithms-on-strings-trees-and-sequences/"],
+  ["Hunt and Szymanski, A fast algorithm for computing longest common subsequences, CACM 1977","https://doi.org/10.1145/359581.359603"]]},
+{id:"edit-script",title:"Edit scripts and diff output",level:3,kind:"Foundation",status:"Runnable teaching lab",
+ summary:"An edit script is a sequence of insertions, deletions and substitutions that transforms one sequence into another. Unified diff format encodes an edit script compactly.",
+ mental:"A recipe of edits turning A into B",
+ mentalText:"The diff walks both sequences, emitting context lines, additions and deletions. Hunks group nearby edits.",
+ steps:["Compute the LCS or a similar alignment.","Walk both sequences, emitting common and changed regions.","Group changes into hunks with context.","Emit in unified diff format with @@ headers."],
+ pseudo:"Unified diff format:\n  --- a/file\n  +++ b/file\n  @@ -start,count +start,count @@\n   context line\n  -deleted line\n  +added line\n\nEdit operations:\n  keep  a[i] == b[j]\n  del   a[i] only\n  ins   b[j] only\n  sub   a[i] != b[j], same position (optional)\n\nHunk grouping:\n  merge changes within 2*k context lines into one hunk\n  k = 3 is the default\n\nCost model:\n  insert = 1\n  delete = 1\n  substitute = 1 or 2 depending on the model\n\nDiff as an edit script:\n  the edit script is a list of (op, i, j, value)\n  adjacent edits can be reordered under certain costs",
+ uses:"Patches, code review, merge conflict display, version control.",
+ strength:"Compact, human-readable, and standardised (POSIX).",
+ limits:"Diff is one of many valid scripts. It is not unique.",
+ pitfall:"Assuming a diff is minimal. Standard diff algorithms produce a minimal or near-minimal diff but not always the 'nicest' one.",
+ question:"What does @@ -1,3 +1,4 @@ mean?",
+ answer:"A hunk starting at line 1 of the old file for 3 lines, and at line 1 of the new file for 4 lines.",
+ demo:"edit-script",sample:"A B C B D A B\nB D C A B A",refs:[
+  ["POSIX diff specification","https://pubs.opengroup.org/onlinepubs/9699919799/utilities/diff.html"],
+  ["MacKenzie, Chamberlain, Kennedy, Rittri, Unix diff algorithms","https://www.cs.arizona.edu/~collberg/Teaching/466-566/2012/Resources/present-2.pdf"],
+  ["GNU diffutils manual","https://www.gnu.org/software/diffutils/manual/diffutils.html"]]},
+{id:"edit-costs",title:"Edit distances and cost models",level:3,kind:"Foundation",status:"Runnable teaching lab",
+ summary:"The cost model defines what counts as one edit. Levenshtein uses unit costs. Weighted models allow different costs for insert, delete and substitute. The choice shapes the diff.",
+ mental:"Costs turn alignment into an optimisation problem",
+ mentalText:"Levenshtein treats all edits as cost 1. Longer edits can be cheaper with affine gap costs. The right model depends on the application.",
+ steps:["Choose a cost for each edit operation.","Define the DP recurrence.","Compute the distance and backtrack.","Tune costs to the domain."],
+ pseudo:"Levenshtein distance:\n  D[i][j] = min(\n    D[i-1][j]   + 1,        # delete\n    D[i][j-1]   + 1,        # insert\n    D[i-1][j-1] + (A[i] != B[j] ? 1 : 0)  # substitute\n  )\n\nHamming: only substitutions, equal-length\n\nWeighted:\n  D[i][j] = min(\n    D[i-1][j] + w_del,\n    D[i][j-1] + w_ins,\n    D[i-1][j-1] + (A[i] != B[j] ? w_sub : 0)\n  )\n\nAffine gap costs:\n  w(k) = open + (k - 1) * extend\n  models long insertions or deletions cheaply once opened\n  requires three DP tables (M, Ix, Iy)\n\nLCS vs Levenshtein:\n  LCS distance = n + m - 2 LCS\n  unit-cost Levenshtein includes substitution\n\nApplications:\n  spell correction (weighted by keyboard distance)\n  speech recognition (phoneme distance)\n  bioinformatics (protein substitution matrices)",
+ uses:"Spelling, OCR, speech, bioinformatics, diff tuning.",
+ strength:"Flexible and well understood.",
+ limits:"Some cost models break the triangle inequality. Heuristics may not apply.",
+ pitfall:"Assuming Levenshtein is the right distance. For diffs, insert+delete is often more meaningful than substitution.",
+ question:"What is the Levenshtein distance between 'kitten' and 'sitting'?",
+ answer:"3. Substitute k->s, e->i, insert g.",
+ demo:"edit-costs",sample:"kitten\nsitting\n1 1 1",refs:[
+  ["Levenshtein, Binary codes capable of correcting deletions, insertions, and reversals, Soviet Physics Doklady 1966","https://nymity.ch/sybilhunting/pdf/Levenshtein1966a.pdf"],
+  ["Needleman and Wunsch, A general method applicable to the search for similarities in the amino acid sequence of two proteins, JMB 1970","https://doi.org/10.1016/0022-2836(70)90057-4"],
+  ["Gusfield, Algorithms on Strings, Trees, and Sequences, Chapter 11","https://www.cambridge.org/core/books/algorithms-on-strings-trees-and-sequences/"]]},
+/* Ch 2 */
+{id:"myers",title:"Myers diff",level:4,kind:"Diff",status:"Runnable teaching lab",
+ summary:"Myers' algorithm finds the shortest edit script (SES) in O((N+M) D) time, where D is the edit distance. It is the standard diff algorithm in Git.",
+ mental:"Explore the edit graph greedily, layer by layer",
+ mentalText:"Each diagonal of the edit graph represents a difference between the two sequences. Myers finds the furthest reaching point on each diagonal per edit distance.",
+ steps:["Start at (0,0).","For each edit distance d, extend k-diagonals.","Snake through matching elements.","Stop when the endpoint (N,M) is reached.","Backtrack to get the edit script."],
+ pseudo:"Myers' algorithm (greedy):\n  for d = 0, 1, 2, ...:\n    for k = -d to d step 2:\n      if k == -d or (k != d and V[k-1] < V[k+1]):\n        x = V[k+1]      # down (insert)\n      else:\n        x = V[k-1] + 1  # right (delete)\n      y = x - k\n      # snake: follow matches\n      while x < N and y < M and A[x] == B[y]: x++; y++\n      V[k] = x\n      if x >= N and y >= M: done\n\nComplexity:\n  time  O((N + M) D)\n  space O(N + M)\n\nLinear-space refinement (Hirschberg):\n  divide and conquer, O(N + M) memory\n  used in git diff when memory is tight\n\nProperties:\n  minimal edit script\n  one of many possible minimal scripts\n  prefers deletions before insertions at ties\n\nVariants:\n  Myers with heuristics (git diff --minimal, --patience)",
+ uses:"Git diff, GNU diff, most modern diff tools.",
+ strength:"Minimal edit script, good performance in practice.",
+ limits:"Worst case quadratic when D is large. Sensitive to the tie-breaking rule.",
+ pitfall:"Assuming Myers gives the 'nicest' diff. It gives a minimal one, but patience or histogram often look better.",
+ question:"What does the greedy Myers algorithm optimise?",
+ answer:"The number of edits (insertions + deletions) in the shortest edit script.",
+ demo:"myers",sample:"A B C B D A B\nB D C A B A",refs:[
+  ["Myers, An O(ND) difference algorithm and its variations, Algorithmica 1986","http://www.xmailserver.org/diff2.pdf"],
+  ["Git documentation, git diff","https://git-scm.com/docs/git-diff"],
+  ["Hirschberg, A linear space algorithm for computing maximal common subsequences, CACM 1975","https://doi.org/10.1145/360825.360861"]]},
+{id:"hunt-szymanski",title:"Hunt-Szymanski and Hunt-McIlroy",level:4,kind:"Diff",status:"Runnable teaching lab",
+ summary:"Hunt-Szymanski computes the LCS in O((r + n) log n) where r is the number of matching pairs. Hunt-McIlroy adds position-based heuristics to prefer cleaner diffs.",
+ mental:"Match positions, then find the longest increasing subsequence",
+ mentalText:"Collect all pairs (i,j) where A[i]==B[j]. Sort by i, then j descending. The LCS is the longest increasing subsequence of the j values.",
+ steps:["Build the matching pairs list.","Sort by i, then j descending.","Compute the longest increasing subsequence of j.","Backtrack to get the LCS."],
+ pseudo:"Hunt-Szymanski:\n  matches = []\n  for i, a in A:\n    for j, b in B:\n      if a == b: matches.append((i, j))\n  sort matches by i asc, then j desc\n  # LIS on the j values\n  tails = []\n  for (i, j) in matches:\n    k = lower_bound(tails, j)\n    if k == len(tails): tails.append(j)\n    else: tails[k] = j\n  LCS length = len(tails)\n\nComplexity:\n  O((r + n) log n) where r = number of matches\n  faster than Myers when r is small\n\nHunt-McIlroy:\n  add position heuristics\n  prefer edits that keep surrounding context stable\n  fewer rearrangements\n\nPatience diff (a variant):\n  focus on elements that are unique in both sequences\n  match those first, then recurse between them\n  produces very readable diffs for code",
+ uses:"Diff tools, version control, code review.",
+ strength:"Faster than Myers when few matches. Good for sparse matching.",
+ limits:"Does not directly minimise edit distance; it minimises LCS-based cost.",
+ pitfall:"Using Hunt-Szymanski without position heuristics. The result may be minimal but ugly.",
+ question:"Why can Hunt-Szymanski be faster than Myers?",
+ answer:"Its cost depends on the number of matches r, not the edit distance D. When r is small, it is much faster.",
+ demo:"hunt",sample:"A B C B D A B\nB D C A B A",refs:[
+  ["Hunt and Szymanski, A fast algorithm for computing longest common subsequences, CACM 1977","https://doi.org/10.1145/359581.359603"],
+  ["Hunt and McIlroy, An algorithm for differential file comparison, Bell Labs 1976","https://www.cs.dartmouth.edu/~doug/diff.pdf"],
+  ["Bram Cohen, patience diff","https://bramcohen.livejournal.com/73318.html"]]},
+{id:"patience",title:"Patience diff",level:4,kind:"Diff",status:"Runnable teaching lab",
+ summary:"Patience diff matches lines that are unique in both sequences first, then recurses between them. It produces very readable diffs for code, at the cost of slightly larger edit scripts.",
+ mental:"Anchor on unique lines, recurse between anchors",
+ mentalText:"Find lines that appear exactly once in each side. LIS on those matches. Use them as anchors. Recurse between anchors. Fall back to Myers for long gaps.",
+ steps:["Find lines unique in both A and B.","Match them by content.","LIS on the matched positions.","Recurse between anchors.","Fall back to Myers for gaps above a threshold."],
+ pseudo:"Patience diff:\n  uniqueA = set of values appearing once in A\n  uniqueB = set of values appearing once in B\n  common = uniqueA ∩ uniqueB\n  matches = [(i, j) for each value v in common]\n  sort matches by i, then j\n  LIS on j to get increasing matches\n  anchors = [(i, j)]\n\n  # recurse between anchors\n  for k in 1..len(anchors):\n    subA = A[anchors[k-1].i + 1 : anchors[k].i]\n    subB = B[anchors[k-1].j + 1 : anchors[k].j]\n    if len(subA) > threshold or len(subB) > threshold:\n      # fall back to Myers\n      diff = myers(subA, subB)\n    else:\n      diff = patience(subA, subB)\n\nComplexity:\n  O(n log n) typical\n  fallback to Myers for large regions\n\nBenefits:\n  matches obvious anchors first\n  produces readable diffs on code\n  less sensitive to repeated lines\n\nUsed in:\n  git diff --patience\n  Bazaar, Mercurial",
+ uses:"Code review, version control, any diff where readability matters.",
+ strength:"Readable diffs. Resists false matches from repeated lines.",
+ limits:"Not minimal. Falls back to Myers for large gaps.",
+ pitfall:"Using patience diff for data without unique anchors. It degenerates to Myers anyway.",
+ question:"When does patience diff help most?",
+ answer:"When files have repeated lines (e.g., braces, blank lines) and a few unique anchor lines that pin the alignment.",
+ demo:"patience",sample:"function a\n  return 1\nend\n\nfunction b\n  return 2\nend\n\nfunction c\n  return 3\nend\n---\nfunction a\n  return 1\nend\n\nfunction b\n  return 22\nend\n\nfunction c\n  return 3\nend",refs:[
+  ["Bram Cohen, patience diff","https://bramcohen.livejournal.com/73318.html"],
+  ["Git documentation, git diff --patience","https://git-scm.com/docs/git-diff#Documentation/git-diff.txt---patience"],
+  ["Bazaar patience diff","https://doc.bazaar.canonical.com/bzr.2.7/en/user-reference/diff-options-help.html"]]},
+{id:"histogram",title:"Histogram diff",level:4,kind:"Diff",status:"Runnable teaching lab",
+ summary:"Histogram diff is a variant of patience diff used by JGit and Git. It prefers the element with the lowest occurrence count as the anchor, breaking ties by position.",
+ mental:"Anchor on the rarest line",
+ mentalText:"For each region, count occurrences on both sides. Pick the element with the minimum total count as the anchor. Recurse on the left and right.",
+ steps:["Count occurrences of each element in the region.","Pick the element with the lowest total count.","Use its occurrence as the split anchor.","Recurse left and right.","If no anchor found, fall back to Myers."],
+ pseudo:"Histogram diff:\n  counts = count occurrences in A and B for each element\n  pick element x with lowest total count\n  if no element with count > 0:\n    return Myers(A, B)\n  split A at x into (A_left, A_right)\n  split B at x into (B_left, B_right)\n  return histogram(A_left, B_left) + [x] + histogram(A_right, B_right)\n\nComplexity:\n  O(n log n) typical\n\nProperties:\n  similar to patience diff, but no uniqueness requirement\n  efficient on large files\n  avoids expensive Myers fallback\n\nDefault in:\n  JGit (used by Eclipse)\n  Git optional (--histogram)\n\nComparison with patience:\n  patience: unique lines only\n  histogram: rarest line, no uniqueness requirement\n  histogram is often faster and equally readable",
+ uses:"Git diff --histogram, JGit, Eclipse, large codebases.",
+ strength:"Fast, readable, robust to repeated lines.",
+ limits:"Not minimal. Can pick anchors that look arbitrary on data with uniform counts.",
+ pitfall:"Assuming histogram and patience are the same. Histogram does not require uniqueness.",
+ question:"How does histogram diff pick an anchor?",
+ answer:"By the element with the lowest total occurrence count in the current region, breaking ties by position.",
+ demo:"histogram",sample:"A B A B A B\nB A B A B A",refs:[
+  ["JGit documentation, histogram diff","https://www.eclipse.org/jgit/"],
+  ["Git documentation, git diff --histogram","https://git-scm.com/docs/git-diff#Documentation/git-diff.txt---histogram"],
+  ["Git mailing list, histogram diff","https://lore.kernel.org/git/"]]},
+/* Ch 3 */
+{id:"three-way",title:"Three-way merge",level:4,kind:"Merge",status:"Runnable teaching lab",
+ summary:"A three-way merge combines two divergent versions (ours and theirs) using their common ancestor (base). Regions changed on one side are taken. Regions changed on both sides are conflicts.",
+ mental:"Combine two edits over a shared base",
+ mentalText:"Compare ours to base and theirs to base. If only one side changed a region, take that change. If both changed the same region differently, mark a conflict.",
+ steps:["Find the base (common ancestor).","Diff ours vs base and theirs vs base.","Walk all three sequences together.","Take non-conflicting changes.","Mark conflicts where both sides differ."],
+ pseudo:"Three-way merge:\n  for each aligned region (base, ours, theirs):\n    if ours == theirs: take either\n    elif ours == base: take theirs\n    elif theirs == base: take ours\n    else: conflict\n\nConflict markers:\n  <<<<<<< ours\n  ...our version...\n  =======\n  ...their version...\n  >>>>>>> theirs\n\nDiffs against base:\n  use Myers or patience to align ours vs base and theirs vs base\n  the alignment of regions uses the base as a pivot\n\nComplexity:\n  O(N log N) typical with a good diff algorithm\n\nVariants:\n  diff3 (traditional)\n  recursive (merge of multiple bases)\n  ort (Git's newer merge strategy)",
+ uses:"Git merge, Mercurial merge, any distributed version control.",
+ strength:"Deterministic, automatic for most cases, well understood.",
+ limits:"Cannot resolve semantic conflicts. Renames and moves confuse it.",
+ pitfall:"Assuming a clean merge is a correct merge. Semantic conflicts remain.",
+ question:"When is a region a conflict in three-way merge?",
+ answer:"When ours != base and theirs != base and ours != theirs.",
+ demo:"three-way",sample:"A\nB\nC\nD\nE\n---\nA\nB\nX\nD\nE\n---\nA\nB\nC\nY\nE",refs:[
+  ["Khanna, Kunal, Pierce, A formal investigation of diff3, FSTTCS 2007","https://doi.org/10.1007/978-3-540-77050-3_41"],
+  ["Git documentation, git merge","https://git-scm.com/docs/git-merge"],
+  ["Conradi and Westfechtel, Version models for software configuration management, ACM Computing Surveys 1998","https://doi.org/10.1145/280277.280280"]]},
+{id:"merge-base",title:"Merge bases and recursive merge",level:5,kind:"Merge",status:"Concept lesson",
+ summary:"A merge base is the best common ancestor of two commits. When multiple merge bases exist, the recursive strategy builds virtual ancestors by merging them, then proceeds with the three-way merge.",
+ mental:"The common ancestor is the pivot of the merge",
+ mentalText:"Git computes merge bases from the commit DAG. Multiple bases mean multiple 'best' ancestors. Recursive merge creates virtual bases to reduce conflicts.",
+ steps:["Find all best common ancestors of ours and theirs.","If one, use it as the base.","If multiple, recursively merge them into virtual bases.","Use the virtual base for the three-way merge."],
+ pseudo:"Merge base (best common ancestor):\n  a common ancestor C of A and B such that no descendant of C\n  is also a common ancestor of A and B\n  (i.e., C is maximal in the ancestor order)\n\nFinding merge bases:\n  walk the commit graph\n  use a priority queue by commit time\n  track visited flags for A and B\n\nRecursive merge (Git):\n  if there is exactly one base, use it\n  else:\n    V = first base\n    for each other base:\n      V = merge(V, base)   # recursive\n    use V as the virtual base\n\nHandling:\n  - rename detection across the merge\n  - file add/delete conflicts\n  - binary file conflicts\n  - submodule conflicts\n\nOrt merge strategy (Git 2.34+):\n  faster, more correct in corner cases\n  handles renames and directory/file conflicts better",
+ uses:"Git, Mercurial, any version control with a DAG of commits.",
+ strength:"Handles complex histories with multiple common ancestors.",
+ limits:"Virtual bases can hide conflicts. Conflicts in the virtual base propagate.",
+ pitfall:"Assuming merge-base is unique. Multiple best common ancestors happen with criss-cross merges.",
+ question:"When does a commit history have multiple merge bases?",
+ answer:"After criss-cross merges: A merged B, and B merged A in a different order, creating two incomparable best common ancestors.",
+ demo:"none",sample:"",refs:[
+  ["Bram Cohen, criss-cross merge","https://bramcohen.livejournal.com/73318.html"],
+  ["Git documentation, git merge-base","https://git-scm.com/docs/git-merge-base"],
+  ["Bendix, Siewert, Recursive merge","https://github.com/git/git/commit/e4cf2143e0299749cf4a3f2b8a1a4c5ba0dd7a1f"]]},
+{id:"rename-detection",title:"Rename and copy detection",level:5,kind:"Merge",status:"Concept lesson",
+ summary:"Rename detection matches files between commits by content similarity. Git uses exact-match, then similarity scoring, then break detection. It matters for merges across renames.",
+ mental:"Recognise a file even though its name changed",
+ mentalText:"Git hashes the blob. If the same blob appears with a different name, it is an exact rename. If not, it computes a similarity score.",
+ steps:["List files added and deleted between commits.","Match exact blob hashes first.","For remaining pairs, compute similarity score.","Match pairs above a threshold.","Optionally detect copied files."],
+ pseudo:"Rename detection:\n  1. exact match: same blob hash -> rename\n  2. similarity index: for each added-deleted pair\n     score = 1 - (edit distance / max lines)\n     if score >= threshold (default 50%): rename\n  3. break detection (optional): split a modified file\n     into renamed fragments\n  4. copy detection: an added file matches an existing one\n\nCost:\n  pairwise similarity is O(n^2) in the worst case\n  Git limits pairs with a size threshold\n\nConfigurations:\n  diff.renames = true (default)\n  diff.renameLimit\n  diff.renameThreshold\n  merge.renameLimit\n\nImpact on merge:\n  without rename detection, a rename looks like delete + add\n  the merge then has a delete/modify conflict\n  with rename detection, the change is applied to the renamed file",
+ uses:"Git merge, git log --follow, code review.",
+ strength:"Handles the common case of file renames in a merge.",
+ limits:"Similarity is heuristic. Copied code can produce false positives.",
+ pitfall:"Disabling rename detection on a merge-heavy repository. Renames become delete+add conflicts.",
+ question:"What does a similarity score of 0.8 mean in Git's rename detection?",
+ answer:"The pair is considered 80% similar (based on line counts). Above the 50% default threshold, Git treats them as a rename.",
+ demo:"none",sample:"",refs:[
+  ["Git documentation, git diff --find-renames","https://git-scm.com/docs/git-diff#Documentation/git-diff.txt---find-renamesltngt"],
+  ["Git documentation, git log --follow","https://git-scm.com/docs/git-log#Documentation/git-log.txt---follow"],
+  ["Tichy, The string-to-string correction problem with block moves, ACM TOCS 1984","https://doi.org/10.1145/357401.357402"]]},
+/* Ch 4 */
+{id:"syntax-aware",title:"Syntax-aware diff",level:5,kind:"Structured",status:"Concept lesson",
+ summary:"Syntax-aware diff parses the input and diffs the parse tree or token stream instead of lines. It produces more meaningful diffs for code, and handles reformatting well.",
+ mental:"Diff the tree, not the text",
+ mentalText:"Parse both versions. Match corresponding nodes. Recurse into the tree. Emit the diff at the token or AST level.",
+ steps:["Parse both versions.","Match top-level nodes by content.","Recurse into unmatched nodes.","Emit a structured diff.","Render as a syntax-aware patch."],
+ pseudo:"Syntax-aware diff:\n  1. tokenize both files\n  2. optionally parse to AST or CST\n  3. match tokens or nodes\n  4. emit operations at the token/node level\n  5. optionally reformat the result\n\nTechniques:\n  token-level Myers diff\n  tree edit distance (Zhang-Shasha, RTED)\n  gumtree (AST diff for Java, JS, etc.)\n  tree-sitter based diff\n\nBenefits:\n  ignores whitespace and formatting\n  no false conflicts from reformatting\n  understands code structure\n\nTools:\n  difftastic (tree-sitter)\n  GumTree\n  Semantic Merge\n  Diffsitter\n\nCost:\n  parsing dominates\n  tree diff is O(n^2) or O(n^3) depending on the algorithm\n\nLimits:\n  requires a parser for each language\n  behavioural changes can be invisible (e.g., swapping args)",
+ uses:"Code review, semantic merge, refactoring tools.",
+ strength:"Ignores formatting noise. Matches code structure.",
+ limits:"Parser needed. Behavioural changes may be invisible.",
+ pitfall:"Assuming a syntax-aware merge is always correct. Semantic changes can still conflict.",
+ question:"Why does syntax-aware diff handle reformatting well?",
+ answer:"It works on the parse tree or token stream, so whitespace and layout changes are not part of the diff.",
+ demo:"none",sample:"",refs:[
+  ["Falleri et al., Fine-grained and accurate source code differencing (GumTree), ASE 2014","https://doi.org/10.1145/2642937.2642982"],
+  ["difftastic documentation","https://difftastic.wilfred.me.uk/"],
+  ["tree-sitter","https://tree-sitter.github.io/tree-sitter/"]]},
+{id:"tree-edit",title:"Tree edit distance",level:5,kind:"Structured",status:"Concept lesson",
+ summary:"Tree edit distance measures the cost of transforming one tree into another via insert, delete, relabel. Zhang-Shasha is the classic O(n^2 m^2) algorithm. RTED improves constants.",
+ mental:"Distance between two trees via node operations",
+ mentalText:"The DP considers operations at the root and recurses into subtrees. Tree edit distance is used for AST diff, XML diff, HTML diff.",
+ steps:["Post-order both trees.","Compute edit distance between prefixes.","Combine subtree distances.","Backtrack to get the edit script."],
+ pseudo:"Operations:\n  insert node\n  delete node\n  relabel node\n\nZhang-Shasha:\n  for each pair of prefixes (i, j):\n    compute forest distance\n    consider: keep, delete leftmost, insert leftmost, or match\n  combine into the tree distance\n\nComplexity:\n  O(n^2 m^2) time, O(n m) space\n\nRTED:\n  O(n^2 m^2) worst case but much faster in practice\n  uses optimal decomposition into forests\n\nApplications:\n  AST diff for code review\n  XML/HTML diff\n  tree-structured data merge\n  biological tree comparison\n\nVariant:\n  tree alignment (allow matching subtrees)\n  edit distance with moves",
+ uses:"AST diff, XML diff, structured data reconciliation.",
+ strength:"Exact for tree structures.",
+ limits:"Expensive. Constrained by the cost model.",
+ pitfall:"Assuming the classic Zhang-Shasha is the best choice. RTED and other variants are often faster.",
+ question:"What is the time complexity of Zhang-Shasha?",
+ answer:"O(n^2 m^2) where n and m are the sizes of the two trees.",
+ demo:"none",sample:"",refs:[
+  ["Zhang and Shasha, Simple fast algorithms for the editing distance between trees and related problems, SIAM J. Comput. 1989","https://doi.org/10.1137/0218082"],
+  ["Pawlik and Augsten, RTED: a robust algorithm for the tree edit distance, VLDB 2011","https://doi.org/10.14778/2095686.2095692"],
+  ["Bille, A survey on tree edit distance and related problems, TCS 2005","https://doi.org/10.1016/j.tcs.2004.12.030"]]},
+{id:"json-merge",title:"JSON and XML merge",level:4,kind:"Structured",status:"Runnable teaching lab",
+ summary:"JSON and XML merge operate on the document tree. Objects merge key-by-key. Arrays are trickier: order may matter, and three-way array merge needs a diff of the array.",
+ mental:"Merge objects key-by-key, arrays element-by-element",
+ mentalText:"Objects merge keys. Scalars conflict if both sides differ. Arrays are merged element-wise when order is stable, or via a list merge.",
+ steps:["Parse both documents.","Match keys or element names.","Merge objects recursively.","For arrays, use index-based or content-based merge.","Emit conflict markers."],
+ pseudo:"Three-way JSON merge:\n  merge(base, ours, theirs):\n    if ours == theirs: return ours\n    if ours == base: return theirs\n    if theirs == base: return ours\n    if all objects:\n      result = {}\n      for k in union of keys:\n        b = base.get(k), o = ours.get(k), t = theirs.get(k)\n        result[k] = merge(b, o, t)\n      return result\n    if all arrays and length equal:\n      return [merge(b, o, t) for each index]\n    return conflict(ours, theirs)\n\nArray strategies:\n  index-based: merge element i with element i\n  key-based:   match elements by a unique key\n  set-based:   treat as sets, union/diff\n\nXML:\n  similar, with element names and attributes\n  attributes are unordered key-value pairs\n  text content is a scalar\n\nTools:\n  jsonmerge, jsondiffpatch\n  xmldiff (Python)\n  three-way-merge for YAML and TOML",
+ uses:"Configuration merge, package manifests, document management.",
+ strength:"Precise merge of structured data.",
+ limits:"Arrays need a merge policy. Scalars are all-or-nothing.",
+ pitfall:"Assuming array index merging is safe. Reordering on one side causes false conflicts.",
+ question:"Why are JSON arrays hard to merge?",
+ answer:"Arrays may be ordered. A reordering on one side is not the same as an edit, but index-based merging cannot tell them apart.",
+ demo:"json-merge",sample:'{"a":1,"b":2,"c":[1,2,3]}\n---\n{"a":1,"b":3,"c":[1,9,3]}\n---\n{"a":1,"b":2,"c":[1,2,4]}',refs:[
+  ["RFC 8259, JSON","https://www.rfc-editor.org/rfc/rfc8259"],
+  ["jsondiffpatch","https://github.com/benjamine/jsondiffpatch"],
+  ["Lindholm, Three-way merge for structured data","https://www.mercurial-scm.org/wiki/ThreeWayMerge"]]},
+{id:"semantic",title:"Semantic merge",level:5,kind:"Structured",status:"Concept lesson",
+ summary:"Semantic merge resolves conflicts using program analysis: rename-aware reference resolution, type information, behavioural equivalence. It handles cases text merge cannot.",
+ mental:"Merge with knowledge of the language's semantics",
+ mentalText:"Two developers rename a function and a caller. Text merge sees a conflict. Semantic merge tracks the rename and applies the call-site change.",
+ steps:["Parse both versions and the base.","Build symbol tables and reference graphs.","Detect renames, moves, signature changes.","Apply changes in terms of the symbols.","Re-emit the merged source."],
+ pseudo:"Semantic merge:\n  1. parse all three versions\n  2. build an AST and symbol table for each\n  3. diff at the AST level (tree edit distance or matching)\n  4. resolve conflicts using semantic rules:\n     - function renamed on one side, called on other\n     - signature changed and call updated\n     - import moved\n     - method extracted\n  5. merge the ASTs\n  6. re-emit source, preserving formatting where possible\n\nRules:\n  rename + edit of body -> merge to renamed location\n  move + edit of body -> merge to new location\n  signature change + compatible call -> rewrite the call\n  type change + literal -> convert if possible\n\nTools:\n  Semantic Merge (commercial)\n  Plastic SCM\n  IntelliJ IDEA merge\n  Mergiraf (tree-sitter)\n\nLimits:\n  needs a parser and semantic analysis\n  behaviour-changing merges still conflict",
+ uses:"Language-aware IDEs, code merge tools.",
+ strength:"Resolves conflicts that text merge cannot.",
+ limits:"Requires a parser and semantics for each language. Behavioural conflicts remain.",
+ pitfall:"Assuming semantic merge always does the right thing. It resolves syntactic conflicts, not behavioural ones.",
+ question:"What is a classic case where semantic merge succeeds and text merge fails?",
+ answer:"A function renamed in one branch while another branch edits its body. Text merge sees a delete + edit conflict; semantic merge applies the edit to the renamed function.",
+ demo:"none",sample:"",refs:[
+  ["Semantic Merge","https://www.semanticmerge.com/"],
+  ["Mergiraf: a syntax-aware merge driver","https://mergiraf.org/"],
+  ["Cavalcanti et al., Assessingsemantic conflicts in software merging, JSS 2017","https://doi.org/10.1016/j.jss.2017.02.026"]]},
+/* Ch 5 */
+{id:"ot",title:"Operational transformation",level:5,kind:"Collaborative",status:"Runnable teaching lab",
+ summary:"Operational transformation (OT) transforms concurrent operations so they commute. It powers Google Docs and other real-time collaborative editors.",
+ mental:"Rewrite concurrent ops so they can be applied in any order",
+ mentalText:"Two users insert at different positions. OT transforms the second op's position based on the first, so both clients converge.",
+ steps:["Each user emits operations with positions.","The server orders operations.","For each concurrent pair, transform positions.","Apply the transformed operation.","All clients converge."],
+ pseudo:"Insert(position, char)\nDelete(position)\n\nTransform rules (insert vs insert):\n  if p1 < p2: return p2 + 1\n  if p1 > p2: return p2\n  tie: break by user id\n\nTransform (insert vs delete):\n  if p_insert <= p_delete: return p_insert\n  else: return p_insert - 1\n\nTransform (delete vs delete):\n  if p1 < p2: return p2 - 1\n  else: return p2\n\nServer ordering:\n  central server gives a total order\n  clients transform their ops against all newer ones\n\nOT vs CRDT:\n  OT: server-based, compact metadata\n  CRDT: decentralised, more metadata",
+ uses:"Google Docs, Etherpad, collaborative editors.",
+ strength:"Compact metadata. Works well with a central server.",
+ limits:"Transformation functions are tricky. Decentralised OT is hard.",
+ pitfall:"Writing transform functions without proving convergence. Subtle bugs appear under specific concurrent edits.",
+ question:"Why does OT usually need a central server?",
+ answer:"The server provides a total order of operations. Transformation rules are defined for pairs of concurrent ops in that order.",
+ demo:"ot",sample:"insert 0 h\ninsert 0 i\n---\n0\n0",refs:[
+  ["Ellis and Gibbs, Concurrency control in groupware systems, SIGMOD 1989","https://doi.org/10.1145/67544.66963"],
+  ["Sun and Ellis, Operational transformation in real-time group editors, CSCW 1998","https://doi.org/10.1145/289444.289469"],
+  ["Shapiro et al., CRDTs, SSS 2011","https://doi.org/10.1007/978-3-642-24550-3_29"]]},
+{id:"crdts",title:"Conflict-free replicated data types",level:5,kind:"Collaborative",status:"Runnable teaching lab",
+ summary:"CRDTs are data types whose merge is commutative, associative and idempotent. They guarantee eventual consistency without coordination. Common types: G-Counter, PN-Counter, LWW-Register, OR-Set, RGA.",
+ mental:"Merge is the least upper bound in a semilattice",
+ mentalText:"Every replica applies local updates. When replicas exchange state, the merge is deterministic. All replicas converge.",
+ steps:["Choose a CRDT type per field.","Apply local operations immediately.","Exchange state or ops with peers.","Merge deterministically.","Converge to the same value."],
+ pseudo:"State-based CRDT (CvRDT):\n  state is a join-semilattice\n  merge = least upper bound (join)\n  commutative, associative, idempotent\n\nOperation-based CRDT (CmRDT):\n  operations commute\n  delivered exactly once via reliable broadcast\n\nExamples:\n  G-Counter:  vector of per-replica counters, value = sum\n  PN-Counter: G-Counter for inc, G-Counter for dec\n  LWW-Register: (value, timestamp), larger timestamp wins\n  MV-Register: keeps all concurrent values\n  G-Set: grow-only set, union on merge\n  2P-Set: added and removed sets\n  OR-Set: add with unique tags, remove those tags\n  RGA: sequence with unique positions\n\nConvergence:\n  all replicas that have seen the same updates converge\n\nTrade-offs:\n  no coordination\n  metadata grows (tombstones, version vectors)",
+ uses:"Collaborative editors, offline-first apps, distributed caches.",
+ strength:"No coordination. Always available. Automatic convergence.",
+ limits:"Some operations are awkward. Metadata grows.",
+ pitfall:"Choosing LWW-Register when timestamps can tie. Ties break arbitrarily and lose updates.",
+ question:"What three properties must a state-based CRDT merge have?",
+ answer:"Commutative, associative and idempotent. Together they make merge a least upper bound.",
+ demo:"crdt",sample:"3\n1 2 3\n2 1 5\n0 3 1",refs:[
+  ["Shapiro et al., Conflict-free replicated data types, SSS 2011","https://doi.org/10.1007/978-3-642-24550-3_29"],
+  ["Shapiro et al., A comprehensive study of convergent and commutative replicated data types, INRIA RR-7506, 2011","https://hal.inria.fr/inria-00555588"],
+  ["Kleppmann, Designing Data-Intensive Applications, O'Reilly 2017","https://dataintensive.net/"]]},
+{id:"causal-order",title:"Causal ordering and vector clocks",level:5,kind:"Collaborative",status:"Runnable teaching lab",
+ summary:"Vector clocks track causality between events in a distributed system. A causal order delivers events so that no message arrives before its cause.",
+ mental:"A vector of counters, one per replica",
+ mentalText:"Each event carries a vector. If V(a) < V(b), then a happened before b. Concurrent events are unordered.",
+ steps:["Each replica maintains a vector of counters.","Increment own counter on local events.","Attach the vector to messages.","On receive, merge with max.","Deliver in causal order."],
+ pseudo:"Vector clock:\n  V_i: vector of length n (one per replica)\n\nLocal event at replica i:\n  V_i[i] += 1\n\nSend message m from i:\n  V_i[i] += 1\n  attach V_i to m\n\nReceive message m at replica j:\n  for k: V_j[k] = max(V_j[k], m.V[k])\n  V_j[j] += 1\n\nComparison:\n  V(a) < V(b) iff V(a)[k] <= V(b)[k] for all k and V(a) != V(b)\n  concurrent otherwise\n\nCausal delivery:\n  hold a message until all messages it causally depends on\n  have been delivered\n\nUsed by:\n  Amazon Dynamo (with vector clocks)\n  Riak\n  many distributed databases",
+ uses:"Distributed databases, collaborative editors, causal consistency.",
+ strength:"Captures causality exactly.",
+ limits:"Vector size grows with number of replicas.",
+ pitfall:"Assuming vector clocks detect concurrency cheaply. They do, but the vectors grow.",
+ question:"When are two events concurrent in vector clock terms?",
+ answer:"When neither V(a) <= V(b) nor V(b) <= V(a). They are unordered.",
+ demo:"vclock",sample:"3\n1 0 0\n0 1 0\n1 1 0\n0 0 1",refs:[
+  ["Lamport, Time, clocks, and the ordering of events in a distributed system, CACM 1978","https://doi.org/10.1145/359545.359563"],
+  ["Mattern, Virtual time and global states of distributed systems, 1989","https://doi.org/10.1016/B978-0-444-88074-1.50022-3"],
+  ["Fidge, Timestamps in message-passing systems that preserve the partial ordering, 1988","https://doi.org/10.1080/00036818808840060"]]},
+/* Ch 6 */
+{id:"rsync",title:"rsync and rolling checksums",level:5,kind:"Sync",status:"Runnable teaching lab",
+ summary:"The rsync algorithm transfers only the differences between two files. The receiver sends rolling checksums of fixed-size blocks; the sender slides a window to find matches and sends only the unmatched regions.",
+ mental:"Slide a window over the file, find matches by checksum",
+ mentalText:"The receiver hashes fixed-size blocks of the old file. The sender rolls a window over the new file, looking for matches. Matched blocks are referenced; unmatched parts are sent.",
+ steps:["Receiver splits old file into blocks and hashes them.","Receiver sends block hashes to sender.","Sender slides a rolling window over the new file.","On match, emit a reference to the block.","On mismatch, accumulate literal bytes."],
+ pseudo:"rsync algorithm:\n  receiver: block_size = B (e.g., 700)\n  for each block i: (weak_i, strong_i) = hash(block i)\n  send (weak_i, strong_i) to sender\n\nsender:\n  window = first B bytes\n  while not at end:\n    (w_weak, w_strong) = rolling_hash(window)\n    if (w_weak, w_strong) matches some block i:\n      emit reference(i)\n      advance window by B\n      reset rolling hash\n    else:\n      emit literal byte\n      advance window by 1\n      update rolling hash\n\nRolling checksum (Adler-32 like):\n  a = sum bytes mod M\n  b = sum (n - i + 1) * byte_i mod M\n  hash = a | (b << 16)\n  update O(1) per shift\n\nStrong hash:\n  MD5 or SHA-1 over the block, used to confirm\n\nBandwidth:\n  only differences + block hashes are transferred\n  block hash list is small\n\nUsed by:\n  rsync\n  zsync\n  casync\n  binary delta tools",
+ uses:"File sync, backup, software updates, container image layers.",
+ strength:"Only differences transferred. Works over any transport.",
+ limits:"Strong hash needed to confirm. Rolling checksum collisions are possible.",
+ pitfall:"Using only a weak checksum. Collisions produce false matches.",
+ question:"Why does rsync use both a weak and a strong checksum?",
+ answer:"The weak rolling checksum is fast to compute but has collisions. The strong hash confirms a match when the weak hash hits.",
+ demo:"rsync",sample:"The quick brown fox jumps over the lazy dog. It was a very fine day.\n---\nThe quick brown cat jumps over the lazy dog. It was a very fine afternoon.",refs:[
+  ["Tridgell and Mackerras, The rsync algorithm, TR-CS-96-05, Australian National University 1996","https://www.andrew.cmu.edu/course/15-749/READINGS/required/cas/tridgell96.pdf"],
+  ["rsync documentation","https://rsync.samba.org/tech_report/"],
+  ["zsync","http://zsync.moria.org.uk/"]]},
+{id:"merkle-sync",title:"Merkle-tree synchronization",level:5,kind:"Sync",status:"Runnable teaching lab",
+ summary:"A Merkle tree hashes leaf blocks and internal nodes. Two replicas compare roots; if they differ, they descend only into the differing subtrees. Efficient reconciliation of large datasets.",
+ mental:"Compare hashes, descend only where they differ",
+ mentalText:"Two replicas exchange root hashes. If equal, nothing to do. If not, descend into children. Only the differing subtrees are traversed.",
+ steps:["Build a Merkle tree over the data.","Exchange root hashes.","If equal, stop.","Else recurse into differing children.","Exchange the differing leaves."],
+ pseudo:"Merkle tree:\n  leaf[i] = hash(data block i)\n  internal = hash(left.child || right.child)\n\nSync:\n  diff(root_a, root_b):\n    if hash(a) == hash(b): return []\n    if a is leaf: return [(a, b)]\n    return diff(a.left, b.left) + diff(a.right, b.right)\n\nCost:\n  O(log n) hashes exchanged on average for one change\n  O(k log n) for k changes\n\nApplications:\n  Cassandra anti-entropy\n  Git object storage (no, Git uses content-addressed objects directly)\n  Nix, Bazel, IPFS\n  Certificate transparency logs\n  Bitcoin block headers\n\nVariants:\n  sparse Merkle tree\n  Merkle Patricia trie (Ethereum)\n  Merkle DAG (IPFS)\n\nUsed with:\n  rolling hashes for chunking\n  version vectors for order",
+ uses:"Distributed databases, content-addressed storage, blockchains, backup.",
+ strength:"Logarithmic reconciliation. Verifiable integrity.",
+ limits:"Tree height limits practical depth. Hash collisions (cryptographic) are a concern.",
+ pitfall:"Rebuilding the Merkle tree on every sync. Only rebuild when the data changes.",
+ question:"Why is Merkle-tree sync efficient?",
+ answer:"Equal subtrees are pruned. Only the paths to differing leaves are traversed, giving logarithmic cost.",
+ demo:"merkle",sample:"8\n3",refs:[
+  ["Merkle, A digital signature based on a conventional encryption function, CRYPTO 1987","https://doi.org/10.1007/3-540-48184-2_32"],
+  ["DeCandia et al., Dynamo: Amazon's highly available key-value store, SOSP 2007","https://doi.org/10.1145/1294261.1294281"],
+  ["IPFS, Merkle DAG","https://docs.ipfs.tech/concepts/merkle-dag/"]]},
+{id:"reconciliation",title:"Set reconciliation",level:5,kind:"Sync",status:"Concept lesson",
+ summary:"Set reconciliation finds the symmetric difference between two sets held by different nodes. Invertible Bloom Lookup Tables (IBLTs) and characteristic polynomials are efficient for small differences.",
+ mental:"Find what's in A but not B, and vice versa, without sending the whole set",
+ mentalText:"Both sides hash their elements into a shared structure. XOR of the two structures isolates the differences. Decoding recovers the missing elements.",
+ steps:["Both sides build an IBLT or sketch.","Exchange sketches.","Subtract to get the difference sketch.","Decode the difference.","Exchange the missing elements."],
+ pseudo:"Invertible Bloom Lookup Table (IBLT):\n  k hash functions into a table of cells\n  each cell stores (count, keySum, valueSum)\n\nInsert (key, value):\n  for each hash h:\n    cell[h].count += 1\n    cell[h].keySum ^= key\n    cell[h].valueSum ^= value\n\nDelete:\n  same with -= and ^= (XOR is its own inverse)\n\nReconcile:\n  A builds IBLT of its set, B builds IBLT of its set\n  subtract: c = A - B\n  decode:\n    if c is empty: sets equal\n    else peel cells with count ±1 to recover keys\n    remaining: decode the rest\n\nComplexity:\n  O(d) cells where d = symmetric difference\n  fast when d is small\n\nCharacteristic polynomials:\n  alternative approach using polynomial interpolation\n  O(d log d) operations over GF(2^k)\n\nApplications:\n  Bitcoin block propagation (Graphene, Erlay)\n  distributed key-value stores\n  anti-entropy protocols",
+ uses:"Blockchain propagation, distributed databases, anti-entropy.",
+ strength:"Efficient when the difference is small.",
+ limits:"Fails to decode if the difference is too large for the sketch size.",
+ pitfall:"Choosing a sketch size too small for the expected difference. Decoding fails.",
+ question:"When is set reconciliation efficient?",
+ answer:"When the symmetric difference is small. The sketch size scales with the difference, not the set size.",
+ demo:"none",sample:"",refs:[
+  ["Eppstein et al., What's the difference? Efficient set reconciliation without prior context, SIGCOMM 2011","https://doi.org/10.1145/2018436.2018462"],
+  ["Goodrich and Mitzenmacher, Invertible Bloom lookup tables, Allerton 2011","https://doi.org/10.1109/ALLERTON.2011.6120248"],
+  ["Minsky, Trachtenberg, Zippel, Set reconciliation with nearly optimal communication complexity, IEEE TIT 2003","https://doi.org/10.1109/TIT.2003.815784"]]},
+/* Ch 7 */
+{id:"git-objects",title:"Git object model",level:4,kind:"Storage",status:"Runnable teaching lab",
+ summary:"Git stores four object types: blob, tree, commit, tag. Each is content-addressed by the SHA-1 (or SHA-256) of its content. The object ID is a cryptographic hash of type, size and payload.",
+ mental:"Every piece of content has a name equal to its hash",
+ mentalText:"A blob is file content. A tree is a directory listing. A commit points to a tree and parent commits. Content addressing gives automatic deduplication.",
+ steps:["Serialise the object: '<type> <size>\\0<payload>'.","Hash the serialisation.","Store under .git/objects/xx/yyyy...","Refer to the object by its hash.","Read by decompressing and verifying the hash."],
+ pseudo:"Object types:\n  blob   file content\n  tree   directory listing (mode, name, hash)\n  commit references a tree and parent commits\n  tag    annotated tag\n\nSerialisation:\n  header = type + ' ' + length + '\\0'\n  storage = zlib_compress(header + payload)\n\nHashing (SHA-1, 160 bits, 40 hex chars):\n  hash = sha1(header + payload)\n\nObject layout:\n  .git/objects/ab/cdef... (zlib-compressed)\n  first two hex chars: directory\n  remaining 38: filename\n\nDeduplication:\n  same content -> same hash -> stored once\n  every copy of a file shares one blob\n\nVerification:\n  rehash the object and compare to its name\n  detects corruption\n\nMigrating to SHA-256:\n  git 2.29+ supports a SHA-256 repository format\n  hashes are 64 hex characters",
+ uses:"Every Git repository. Also used by Nix, IPFS, and many content-addressed stores.",
+ strength:"Automatic deduplication. Cryptographic integrity.",
+ limits:"SHA-1 collisions are possible (Git has mitigations).",
+ pitfall:"Assuming Git stores diffs. It stores full snapshots; deltas appear only in packfiles.",
+ question:"What is the object ID of a Git object?",
+ answer:"SHA-1 (or SHA-256) of the serialisation: header ('<type> <size>\\0') plus payload.",
+ demo:"git-obj",sample:"hello world\nblob",refs:[
+  ["Git documentation, Git internals","https://git-scm.com/book/en/v2/Git-Internals-Git-Objects"],
+  ["Chacon and Straub, Pro Git, 2nd ed., Apress 2014","https://git-scm.com/book/en/v2"],
+  ["Git hash function transition","https://git-scm.com/docs/hash-function-transition"]]},
+{id:"packfiles",title:"Packfiles and delta chains",level:5,kind:"Storage",status:"Concept lesson",
+ summary:"Packfiles store many Git objects in one file with delta compression. Similar objects (blobs, trees) are stored as deltas against one another. This reduces size dramatically.",
+ mental:"Store objects as deltas against similar ones",
+ mentalText:"Git packs loose objects into a single file. Within the pack, similar objects are stored as deltas: reference + instructions to reconstruct.",
+ steps:["Collect loose objects.","Group similar objects (by size, type).","Compute deltas between pairs.","Store bases and deltas.","Build an index for O(1) lookup."],
+ pseudo:"Packfile structure:\n  header: 'PACK', version, number of objects\n  objects (in some order):\n    type and size (variable length)\n    base reference (if delta)\n    zlib-compressed delta or content\n  trailer: SHA-1 of the packfile contents\n\nDelta encoding:\n  copy instructions: (offset, length)\n  insert instructions: literal bytes\n  reconstruct: apply instructions to the base\n\nDelta chain depth:\n  Git limits to ~50 (depth 50) to bound reconstruction time\n  packs prefer a shallow tree of deltas\n\nIndex (.idx):\n  sorted list of object IDs with offsets\n  binary search for lookup\n\nThin packs:\n  deltas reference objects not in the pack\n  used in network transfer\n  completed on the client side\n\nRepacking:\n  git gc, git repack\n  combine packs, recompute optimal deltas\n  prune unreachable objects\n\nCompression ratio:\n  3-10x typical for source code\n  higher for homogeneous text",
+ uses:"Every Git repository. Also used by many content stores.",
+ strength:"Massive size reduction. Fast lookup via index.",
+ limits:"Delta chain depth affects read time. Packing is expensive to compute.",
+ pitfall:"Assuming all objects are deltas. Bases are stored in full; deltas reference them.",
+ question:"Why does Git limit delta chain depth?",
+ answer:"Each delta requires reconstructing from its base. Long chains slow down reads. Depth 50 is a balance between size and speed.",
+ demo:"packfile",sample:"100\n20\n3",refs:[
+  ["Git documentation, packfile format","https://git-scm.com/docs/pack-format"],
+  ["Git documentation, git gc","https://git-scm.com/docs/git-gc"],
+  ["Chacon and Straub, Pro Git, Git internals, packfiles","https://git-scm.com/book/en/v2/Git-Internals-Packfiles"]]},
+{id:"gc",title:"Garbage collection and reachability",level:4,kind:"Storage",status:"Concept lesson",
+ summary:"Git garbage collection removes unreachable objects, repacks loose objects, and prunes old reflogs. Reachability starts from refs (branches, tags) and walks the object graph.",
+ mental:"Mark reachable objects, sweep the rest",
+ mentalText:"Start from all refs and index entries. Mark every reachable commit, tree, and blob. Prune unmarked objects after a grace period.",
+ steps:["List all refs and index entries.","Walk the object graph from these roots.","Mark reachable objects.","After a grace period, delete unreachable objects.","Repack to consolidate."],
+ pseudo:"Reachability:\n  roots = refs + index entries + reflogs + in-progress operations\n  reachable = set()\n  queue = roots\n  while queue not empty:\n    obj = pop queue\n    if obj in reachable: continue\n    reachable.add(obj)\n    for child in object_children(obj): queue.push(child)\n\nGarbage collection (git gc):\n  1. pack loose objects\n  2. prune unreachable objects (after 2 weeks default)\n  3. expire reflogs\n  4. prune unreachable refs\n  5. run git fsck to verify\n\nGrace period:\n  objects that are unreachable but recent are kept\n  prevents losing data during in-progress operations\n\nCommands:\n  git gc          -- routine maintenance\n  git gc --aggressive -- deeper repacking\n  git prune       -- remove unreachable, no repack\n  git fsck        -- verify integrity\n\nProtecting objects:\n  git fsck --lost-found finds dangling objects\n  a dangling commit is a commit with no ref pointing to it",
+ uses:"Every Git repository. Also useful conceptually for any object store.",
+ strength:"Reclaims space. Verifies integrity.",
+ limits:"Mark-and-sweep requires a stop-the-world or cooperative approach.",
+ pitfall:"Running aggressive GC during an in-progress rebase. May delete objects the rebase needs.",
+ question:"What is the grace period in Git GC?",
+ answer:"A window (default 2 weeks) during which unreachable objects are not deleted. It protects against losing data during in-progress operations.",
+ demo:"none",sample:"",refs:[
+  ["Git documentation, git gc","https://git-scm.com/docs/git-gc"],
+  ["Git documentation, git fsck","https://git-scm.com/docs/git-fsck"],
+  ["Chacon and Straub, Pro Git, maintenance and data recovery","https://git-scm.com/book/en/v2/Git-Internals-Maintenance-and-Data-Recovery"]]},
+/* Ch 8 */
+{id:"cdc",title:"Content-defined chunking",level:5,kind:"Sync",status:"Runnable teaching lab",
+ summary:"Content-defined chunking (CDC) splits a stream into chunks using the content, not fixed offsets. A rolling hash triggers a cut when it matches a pattern. This makes chunks stable across insertions and deletions.",
+ mental:"Cut where the content says, not where the offset says",
+ mentalText:"Slide a rolling window. When the hash matches a mask, cut the chunk. Same content gives same boundaries regardless of position.",
+ steps:["Slide a window over the stream.","Compute the rolling hash.","If hash & mask == target, cut a chunk.","Reset the window.","Continue to the end of the stream."],
+ pseudo:"Content-defined chunking:\n  window_size = 16-64 bytes\n  min_chunk = 2 KB\n  avg_chunk = 8 KB\n  max_chunk = 64 KB\n\n  i = min_chunk\n  while i < n:\n    if i - last_cut >= min_chunk:\n      h = rolling_hash(window[i-window_size:i])\n      if h & (avg_chunk - 1) == 0:   # or some mask\n        cut at i\n        last_cut = i\n        reset window\n    if i - last_cut >= max_chunk:\n      cut at i\n      last_cut = i\n      reset window\n    i += 1\n\nProperties:\n  same content -> same chunk boundaries\n  insertion shifts only nearby chunks\n  deduplication across versions\n\nRolling hash:\n  Rabin fingerprint\n  buzhash\n  gear hash (used by FastCDC)\n\nApplications:\n  backup (restic, borg)\n  file sync (rsync variants)\n  content-addressed storage (casync)\n  container image layers",
+ uses:"Backup, sync, deduplication, content-addressed storage.",
+ strength:"Boundaries stable across edits. Good deduplication.",
+ limits:"Chunk size distribution is heuristic. Very small edits can still shift boundaries.",
+ pitfall:"Using a weak rolling hash. Collisions cause spurious cuts.",
+ question:"Why does content-defined chunking beat fixed-size chunking?",
+ answer:"An insertion at the start shifts all fixed offsets, re-chunking everything. CDC boundaries depend only on nearby content, so only nearby chunks change.",
+ demo:"cdc",sample:"64\n16\n1024",refs:[
+  ["Muthitacharoen, Chen, Mazières, A low-bandwidth network file system, SOSP 2001","https://doi.org/10.1145/502034.502052"],
+  ["Rabin, Fingerprinting by random polynomials, Harvard TR-15-81, 1981","https://www.eecs.harvard.edu/~michaelm/postscripts/tr-02-05.pdf"],
+  ["casync","https://github.com/systemd/casync"]]},
+{id:"fastcdc",title:"FastCDC and gear hashing",level:5,kind:"Sync",status:"Runnable teaching lab",
+ summary:"FastCDC improves CDC by using a gear hash (one multiply-add per byte), a normalized chunking algorithm, and jump-based skipping. It is significantly faster than Rabin-based CDC.",
+ mental:"A gear hash gives one bit-shift per byte",
+ mentalText:"The gear hash updates with a single multiply and shift. Normalized chunking biases cut points toward the average size, reducing size variance.",
+ steps:["Compute gear hash by shifting and adding table lookups.","If hash & mask == 0 and length >= min, cut.","If length >= normal, relax the mask (shorter chunks).","If length >= max, force cut.","Reset and continue."],
+ pseudo:"Gear hash:\n  h = (h << 1) + G[b]   # G is a table of 256 random 64-bit values\n\nFastCDC normalized chunking:\n  min_size    = 2 KB\n  normal_size = 8 KB  (target average)\n  max_size    = 64 KB\n\n  while i < n:\n    if len < min: advance\n    elif len < normal: h &= mask_strict; if h == 0: cut\n    else:              h &= mask_loose;  if h == 0: cut\n    if len >= max: cut\n\n  mask_strict has more bits set than mask_loose\n  so cuts are less likely before normal_size\n\nSpeedup:\n  ~10x faster than Rabin-based CDC\n  used in restic, borg, casync, restic\n\nQuality:\n  chunk size distribution is tighter\n  fewer very small and very large chunks\n\nVariants:\n  FastCDC with SIMD\n  Gear-based rolling hash",
+ uses:"Backup tools, deduplication, distributed sync.",
+ strength:"Very fast. Tight chunk size distribution.",
+ limits:"Still heuristic. Requires a table of random values.",
+ pitfall:"Using a weak gear hash table. Poor distribution, degraded deduplication.",
+ question:"What is the main speed advantage of FastCDC?",
+ answer:"The gear hash needs one multiply-add per byte, versus Rabin's polynomial arithmetic. Plus jump-based skipping of already-known chunks.",
+ demo:"fastcdc",sample:"64\n16\n1024",refs:[
+  ["Xia et al., FastCDC: a fast and efficient content-defined chunking approach, USENIX ATC 2016","https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia"],
+  ["Xia et al., A comprehensive study of the past, present, and future of data deduplication, Proc. IEEE 2016","https://doi.org/10.1109/JPROC.2016.2571298"],
+  ["restic, chunker","https://github.com/restic/chunker"]]},
+{id:"resumable",title:"Resumable transfer and block-level deltas",level:4,kind:"Sync",status:"Concept lesson",
+ summary:"Resumable transfer sends only the parts of a file that differ from a known base. Block-level deltas track progress and allow restart from any point. Used in HTTP range requests, rsync, zsync.",
+ mental:"Send only what's missing, and remember where you stopped",
+ mentalText:"The receiver advertises which blocks it already has. The sender sends only the missing blocks. On failure, the transfer resumes from the last acked block.",
+ steps:["Split the file into blocks (fixed or content-defined).","Receiver advertises its known block hashes.","Sender identifies missing blocks.","Sender streams only those blocks.","Receiver acknowledges and can resume from the last ack."],
+ pseudo:"Block-level delta:\n  sender:  block_size B\n  receiver: has blocks with hashes H\n  receiver sends H to sender\n  sender:\n    for each block b in file:\n      if hash(b) in H: skip\n      else: send b\n\nResumable:\n  transfer = (file_id, block_index, bytes)\n  on interrupt: remember last acked block_index\n  on resume: request blocks from block_index + 1\n\nHTTP range requests:\n  Range: bytes=start-end\n  206 Partial Content\n  useful for resuming downloads\n\nzsync:\n  .zsync file has block hashes and metadata\n  client downloads only differing blocks\n  used for ISO updates\n\nContent-defined blocks for resilience:\n  boundaries stable across versions\n  reused even if the file changed\n\nBandwidth-aware:\n  prioritize small blocks first\n  back off on congestion\n  compression before transmission",
+ uses:"Software updates, backup, large file sync, container layers.",
+ strength:"Resumes cleanly. Sends only what's missing.",
+ limits:"Needs a known base. Block-level deltas assume stable chunk boundaries.",
+ pitfall:"Using fixed-size blocks for a file that gets insertions. All downstream blocks shift.",
+ question:"Why does rsync use content-defined chunking for large file sync?",
+ answer:"Content-defined boundaries are stable across small edits. Fixed-size blocks would all shift after an insertion.",
+ demo:"none",sample:"",refs:[
+  ["zsync","http://zsync.moria.org.uk/"],
+  ["RFC 7233, HTTP Range Requests","https://www.rfc-editor.org/rfc/rfc7233"],
+  ["Tridgell, Efficient algorithms for sorting and synchronization, PhD thesis, ANU 1999","https://www.samba.org/~tridge/phd_thesis.pdf"]]}
+];
+
+const LESSONS=RAW.map(mk);
+const byId=Object.fromEntries(LESSONS.map(x=>[x.id,x]));
+
+/* ============================================================
+   Diff and sync helpers
+   ============================================================ */
+function splitLines(s){ return s.split(/\n/); }
+function parseTwoBlocks(text){
+ const parts = text.split(/\n---\n/);
+ if(parts.length < 2) return [splitLines(text.trim()), []];
+ return [splitLines(parts[0]), splitLines(parts[1])];
+}
+function parseThreeBlocks(text){
+ const parts = text.split(/\n---\n/);
+ if(parts.length < 3) return [splitLines(parts[0]||''), splitLines(parts[1]||''), splitLines(parts[2]||'')];
+ return [splitLines(parts[0]), splitLines(parts[1]), splitLines(parts[2])];
+}
+function lcsTable(A, B){
+ const n = A.length, m = B.length;
+ const L = Array.from({length:n+1}, ()=>new Array(m+1).fill(0));
+ for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+  if(A[i-1] === B[j-1]) L[i][j] = L[i-1][j-1] + 1;
+  else L[i][j] = Math.max(L[i-1][j], L[i][j-1]);
+ }
+ return L;
+}
+function lcsBacktrack(A, B, L){
+ const out = [];
+ let i = A.length, j = B.length;
+ while(i>0 && j>0){
+  if(A[i-1] === B[j-1]){ out.push(A[i-1]); i--; j--; }
+  else if(L[i-1][j] >= L[i][j-1]) i--;
+  else j--;
+ }
+ return out.reverse();
+}
+function myersDiff(A, B, opts){
+ // Simple Myers O(ND) with full trace (small inputs only)
+ const N = A.length, M = B.length;
+ const maxD = Math.min(N + M, 400);
+ const V = new Map();
+ const trace = [];
+ V.set(1, 0);
+ for(let d=0;d<=maxD;d++){
+  trace.push(new Map(V));
+  for(let k=-d;k<=d;k+=2){
+   let x;
+   if(k === -d || (k !== d && (V.get(k-1)||0) < (V.get(k+1)||0))){
+    x = V.get(k+1)||0;
+   } else {
+    x = (V.get(k-1)||0) + 1;
+   }
+   let y = x - k;
+   while(x < N && y < M && A[x] === B[y]){x++; y++;}
+   V.set(k, x);
+   if(x >= N && y >= M){
+    return backtrackMyers(A, B, trace, d);
+   }
+  }
+ }
+ return null;
+}
+function backtrackMyers(A, B, trace, D){
+ const edits = [];
+ let x = A.length, y = B.length;
+ for(let d=D; d>0; d--){
+  const V = trace[d];
+  const k = x - y;
+  let prevK;
+  if(k === -d || (k !== d && (V.get(k-1)||0) < (V.get(k+1)||0))){
+   prevK = k + 1;
+  } else {
+   prevK = k - 1;
+  }
+  const prevX = V.get(prevK)||0;
+  const prevY = prevX - prevK;
+  while(x > prevX && y > prevY){
+   edits.push({op:'keep', a:A[x-1], b:B[y-1]});
+   x--; y--;
+  }
+  if(x === prevX){
+   edits.push({op:'ins', b:B[y-1]});
+   y--;
+  } else {
+   edits.push({op:'del', a:A[x-1]});
+   x--;
+  }
+ }
+ while(x > 0 && y > 0){
+  edits.push({op:'keep', a:A[x-1], b:B[y-1]});
+  x--; y--;
+ }
+ while(x > 0){ edits.push({op:'del', a:A[x-1]}); x--; }
+ while(y > 0){ edits.push({op:'ins', b:B[y-1]}); y--; }
+ return edits.reverse();
+}
+function unifiedDiff(edits, context){
+ const lines = [];
+ let hunk = [];
+ let oldLine = 1, newLine = 1;
+ function flush(){
+  if(!hunk.length) return;
+  let oStart = 0, nStart = 0, oCount = 0, nCount = 0;
+  const first = hunk[0];
+  oStart = first.oldLine; nStart = first.newLine;
+  for(const h of hunk){
+   if(h.type === 'del' || h.type === 'ctx') oCount++;
+   if(h.type === 'ins' || h.type === 'ctx') nCount++;
+  }
+  lines.push(`@@ -${oStart},${oCount} +${nStart},${nCount} @@`);
+  for(const h of hunk){
+   const mark = h.type === 'ins' ? '+' : h.type === 'del' ? '-' : ' ';
+   lines.push(mark + h.text);
+  }
+  hunk = [];
+ }
+ let pendingCtx = [];
+ for(let idx=0; idx<edits.length; idx++){
+  const e = edits[idx];
+  const line = {type: e.op === 'keep' ? 'ctx' : e.op, text: e.op === 'ins' ? e.b : e.a, oldLine, newLine};
+  if(e.op !== 'keep'){
+   // add any pending context before
+   hunk.push(...pendingCtx);
+   pendingCtx = [];
+   hunk.push(line);
+   if(e.op === 'keep'){ oldLine++; newLine++; }
+   else if(e.op === 'del'){ oldLine++; }
+   else { newLine++; }
+  } else {
+   // buffer context
+   if(hunk.length){
+    hunk.push(line);
+    if(hunk.filter(h=>h.type==='ctx').length > 2*context){
+     // trim the middle
+     hunk = hunk.slice(0, context).concat(hunk.slice(-context));
+    }
+   } else {
+    pendingCtx.push(line);
+    if(pendingCtx.length > context*2) pendingCtx.shift();
+   }
+   oldLine++; newLine++;
+  }
+ }
+ flush();
+ return lines;
+}
+function diffStats(edits){
+ let ins = 0, del = 0, keep = 0;
+ for(const e of edits){
+  if(e.op === 'ins') ins++;
+  else if(e.op === 'del') del++;
+  else keep++;
+ }
+ return {ins, del, keep};
+}
+function renderUnifiedDiff(unified){
+ return unified.map(l=>{
+  if(l.startsWith('@@')) return `<span class="diff-line diff-ctx" style="color:var(--accent)">${esc(l)}</span>`;
+  if(l.startsWith('+')) return `<span class="diff-line diff-add">${esc(l)}</span>`;
+  if(l.startsWith('-')) return `<span class="diff-line diff-del">${esc(l)}</span>`;
+  return `<span class="diff-line diff-ctx">${esc(l)}</span>`;
+ }).join('\n');
+}
+function threeWayMerge(base, ours, theirs){
+ // Simple line-based three-way merge
+ const result = [];
+ const conflicts = [];
+ // Use LCS alignments against base for both sides
+ // For simplicity, we walk all three sequences and align by common lines
+ // A full implementation would align regions; this simplified one aligns line by line
+ const n = Math.max(base.length, ours.length, theirs.length);
+ let i=0, j=0, k=0;
+ while(i < base.length || j < ours.length || k < theirs.length){
+  const b = base[i], o = ours[j], t = theirs[k];
+  if(o === t){
+   if(o !== undefined) result.push({type:'ctx', text:o});
+   if(o === b){ i++; j++; k++; }
+   else { j++; k++; if(b === o) i++; }
+   continue;
+  }
+  if(o === b){
+   // theirs changed
+   if(t !== undefined && t !== b){
+    result.push({type:'ins', text:t});
+   } else { result.push({type:'ctx', text:b}); i++; }
+   i++; k++;
+   continue;
+  }
+  if(t === b){
+   // ours changed
+   if(o !== undefined && o !== b){
+    result.push({type:'ins', text:o});
+   } else { result.push({type:'ctx', text:b}); i++; }
+   i++; j++;
+   continue;
+  }
+  // both changed, and they differ -> conflict
+  conflicts.push({base:b, ours:o, theirs:t});
+  result.push({type:'conflict', base:b, ours:o, theirs:t});
+  i++; j++; k++;
+ }
+ return {result, conflicts};
+}
+function renderMergeResult(res){
+ return res.map(r=>{
+  if(r.type === 'ctx') return `<span class="diff-line diff-ctx"> ${esc(r.text)}</span>`;
+  if(r.type === 'ins') return `<span class="diff-line diff-add">+${esc(r.text)}</span>`;
+  if(r.type === 'del') return `<span class="diff-line diff-del">-${esc(r.text)}</span>`;
+  if(r.type === 'conflict'){
+   return `<span class="diff-line diff-del">&lt;&lt;&lt;&lt;&lt;&lt;&lt; ours</span>\n` +
+          `<span class="diff-line diff-del"> ${esc(r.ours)}</span>\n` +
+          `<span class="diff-line diff-ctx" style="color:var(--warn)">=======</span>\n` +
+          `<span class="diff-line diff-add"> ${esc(r.theirs)}</span>\n` +
+          `<span class="diff-line diff-add">&gt;&gt;&gt;&gt;&gt;&gt;&gt; theirs</span>`;
+  }
+  return '';
+ }).join('\n');
+}
+function rollingHash(str){
+ // Simple polynomial rolling hash
+ let h = 0;
+ for(let i=0;i<str.length;i++) h = ((h * 31) + str.charCodeAt(i)) | 0;
+ return h >>> 0;
+}
+function rsyncMatch(sender, receiver, blockSize){
+ const rBlocks = [];
+ for(let i=0;i<receiver.length;i+=blockSize){
+  const b = receiver.slice(i, i+blockSize);
+  rBlocks.push({offset:i, hash: rollingHash(b.join('\n')), block:b});
+ }
+ const rMap = new Map();
+ rBlocks.forEach(b=>rMap.set(b.hash, b));
+ const ops = [];
+ let i = 0;
+ let literal = [];
+ while(i < sender.length){
+  // try to match a block
+  let matched = false;
+  for(let k=0;k<rBlocks.length;k++){
+   const b = rBlocks[k];
+   let eq = true;
+   for(let x=0;x<blockSize && i+x<sender.length && x<b.block.length;x++){
+    if(sender[i+x] !== b.block[x]){eq = false; break;}
+   }
+   if(eq && i + b.block.length <= sender.length){
+    if(literal.length){
+     ops.push({type:'lit', text: literal.join('\n')});
+     literal = [];
+    }
+    ops.push({type:'ref', offset: b.offset, length: b.block.length});
+    i += b.block.length;
+    matched = true;
+    break;
+   }
+  }
+  if(!matched){ literal.push(sender[i]); i++; }
+ }
+ if(literal.length) ops.push({type:'lit', text: literal.join('\n')});
+ return {rBlocks, ops};
+}
+function gearTable(){
+ // Deterministic random 64-bit-ish values, but JS numbers are doubles
+ const t = new Uint32Array(256);
+ let s = 0x9E3779B9;
+ for(let i=0;i<256;i++){
+  s = (s * 1664525 + 1013904223) >>> 0;
+  t[i] = s;
+ }
+ return t;
+}
+function fastCDCChunks(data, minSize, normalSize, maxSize){
+ const G = gearTable();
+ const chunks = [];
+ let start = 0;
+ let h = 0;
+ let i = 0;
+ const strictMask = (1 << 13) - 1; // many bits set -> rare cut
+ const looseMask = (1 << 10) - 1;
+ while(i < data.length){
+  const b = data.charCodeAt(i);
+  h = ((h << 1) + G[b & 0xff]) >>> 0;
+  const len = i - start + 1;
+  if(len < minSize){ i++; continue; }
+  let mask;
+  if(len < normalSize) mask = strictMask;
+  else mask = looseMask;
+  if((h & mask) === 0 || len >= maxSize){
+   chunks.push({start, end:i+1, len});
+   start = i+1;
+   h = 0;
+  }
+  i++;
+ }
+ if(start < data.length) chunks.push({start, end:data.length, len:data.length-start});
+ return chunks;
+}
+function merkleTree(leaves){
+ // leaves: array of strings; return levels
+ if(!leaves.length) return [[]];
+ const levels = [leaves.map(l=>({value: l, hash: djb2(l), left:null, right:null}))];
+ while(levels[levels.length-1].length > 1){
+  const prev = levels[levels.length-1];
+  const next = [];
+  for(let i=0;i<prev.length;i+=2){
+   const l = prev[i];
+   const r = prev[i+1] || l;
+   const h = djb2(l.hash + '|' + r.hash);
+   next.push({value: null, hash: h, left: l, right: r});
+  }
+  levels.push(next);
+ }
+ return levels;
+}
+function djb2(str){
+ let h = 5381;
+ for(let i=0;i<str.length;i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+ return h;
+}
+function merkleDiff(levelA, levelB, depth){
+ // Compare two merkle levels
+ if(!levelA || !levelB) return {type:'diff'};
+ const a = levelA[depth][0];
+ const b = levelB[depth][0];
+ if(a.hash === b.hash) return {type:'same'};
+ // descend
+ const result = [];
+ function rec(na, nb, lvl){
+  if(!na || !nb) return;
+  if(na.hash === nb.hash) return;
+  if(lvl === 0){ result.push({a: na.value, b: nb.value}); return; }
+  rec(na.left, nb.left, lvl-1);
+  rec(na.right, nb.right, lvl-1);
+ }
+ rec(a, b, depth);
+ return {type:'diff', changes: result};
+}
+function applyOt(op, concurrent, siteId){
+ // Simple OT transform for inserts and deletes
+ // op = {type:'ins'|'del', pos, char}
+ // concurrent = {type, pos, char, siteId}
+ if(op.type === 'ins' && concurrent.type === 'ins'){
+  if(concurrent.pos < op.pos || (concurrent.pos === op.pos && concurrent.siteId < siteId)){
+   return {type:'ins', pos: op.pos + 1, char: op.char};
+  }
+  return {type:'ins', pos: op.pos, char: op.char};
+ }
+ if(op.type === 'ins' && concurrent.type === 'del'){
+  if(concurrent.pos < op.pos) return {type:'ins', pos: op.pos - 1, char: op.char};
+  return {type:'ins', pos: op.pos, char: op.char};
+ }
+ if(op.type === 'del' && concurrent.type === 'ins'){
+  if(concurrent.pos < op.pos) return {type:'del', pos: op.pos + 1};
+  return {type:'del', pos: op.pos};
+ }
+ if(op.type === 'del' && concurrent.type === 'del'){
+  if(concurrent.pos < op.pos) return {type:'del', pos: op.pos - 1};
+  return {type:'del', pos: op.pos};
+ }
+ return op;
+}
+function applyOp(text, op){
+ if(op.type === 'ins'){
+  return text.slice(0, op.pos) + op.char + text.slice(op.pos);
+ }
+ if(op.type === 'del'){
+  return text.slice(0, op.pos) + text.slice(op.pos + 1);
+ }
+ return text;
+}
+function gCounterMerge(a, b){
+ return a.map((v, i) => Math.max(v, b[i]||0));
+}
+function lwwMerge(a, b){
+ // a, b = {value, ts}
+ return a.ts >= b.ts ? a : b;
+}
+function orSetMerge(a, b){
+ // a, b = {adds: Map<tag, value>, removes: Set<tag>}
+ const result = {adds: new Map(a.adds), removes: new Set(a.removes)};
+ for(const [tag, val] of b.adds) if(!result.adds.has(tag)) result.adds.set(tag, val);
+ for(const tag of b.removes) result.removes.add(tag);
+ // purge: removes only affect adds that exist
+ return result;
+}
+function orSetElements(s){
+ // Return current elements (adds not in removes)
+ const out = [];
+ const seen = new Set();
+ for(const [tag, val] of s.adds){
+  if(s.removes.has(tag)) continue;
+  if(seen.has(val)) continue;
+  seen.add(val);
+  out.push(val);
+ }
+ return out;
+}
+
+/* ============================================================
+   Code examples
+   ============================================================ */
+const CODE={
+ "lcs":{python:`def lcs_length(A, B):\n    n, m = len(A), len(B)\n    L = [[0] * (m + 1) for _ in range(n + 1)]\n    for i in range(1, n + 1):\n        for j in range(1, m + 1):\n            if A[i-1] == B[j-1]:\n                L[i][j] = L[i-1][j-1] + 1\n            else:\n                L[i][j] = max(L[i-1][j], L[i][j-1])\n    return L\n\ndef lcs(A, B):\n    L = lcs_length(A, B)\n    i, j = len(A), len(B)\n    out = []\n    while i > 0 and j > 0:\n        if A[i-1] == B[j-1]:\n            out.append(A[i-1]); i -= 1; j -= 1\n        elif L[i-1][j] >= L[i][j-1]:\n            i -= 1\n        else:\n            j -= 1\n    return out[::-1]\n\nprint(lcs("ABCBDAB", "BDCABA"))\n`},
+ "edit-script":{python:`import difflib\n\na = "A B C B D A B".split()\nb = "B D C A B A".split()\n\nsm = difflib.SequenceMatcher(a=a, b=b)\nfor tag, i1, i2, j1, j2 in sm.get_opcodes():\n    print(f"{tag:8} a[{i1}:{i2}] b[{j1}:{j2}]")\n\nfor line in difflib.unified_diff(a, b, lineterm=""):\n    print(line)\n`},
+ "edit-costs":{python:`def levenshtein(a, b, w_ins=1, w_del=1, w_sub=1):\n    n, m = len(a), len(b)\n    D = [[0] * (m + 1) for _ in range(n + 1)]\n    for i in range(n + 1): D[i][0] = i * w_del\n    for j in range(m + 1): D[0][j] = j * w_ins\n    for i in range(1, n + 1):\n        for j in range(1, m + 1):\n            D[i][j] = min(\n                D[i-1][j] + w_del,\n                D[i][j-1] + w_ins,\n                D[i-1][j-1] + (0 if a[i-1] == b[j-1] else w_sub),\n            )\n    return D[n][m]\n\nprint(levenshtein("kitten", "sitting"))\nprint(levenshtein("kitten", "sitting", w_sub=2))\n`},
+ "myers":{python:`# Myers diff (simplified, exact)\ndef myers(A, B):\n    N, M = len(A), len(B)\n    max_d = N + M\n    v = {1: 0}\n    trace = []\n    for d in range(max_d + 1):\n        trace.append(dict(v))\n        for k in range(-d, d + 1, 2):\n            if k == -d or (k != d and v.get(k - 1, 0) < v.get(k + 1, 0)):\n                x = v.get(k + 1, 0)\n            else:\n                x = v.get(k - 1, 0) + 1\n            y = x - k\n            while x < N and y < M and A[x] == B[y]:\n                x += 1; y += 1\n            v[k] = x\n            if x >= N and y >= M:\n                return d\n    return -1\n\nprint(myers("ABCBDAB", "BDCABA"))\n`},
+ "hunt":{python:`from bisect import bisect_left\n\ndef hunt_szymanski(A, B):\n    # positions of each symbol in B\n    pos = {}\n    for j, b in enumerate(B):\n        pos.setdefault(b, []).append(j)\n    # collect matching pairs (i, j) sorted by i asc, j desc\n    pairs = []\n    for i, a in enumerate(A):\n        if a in pos:\n            for j in reversed(pos[a]):\n                pairs.append((i, j))\n    # LIS on j\n    tails = []\n    for i, j in pairs:\n        k = bisect_left(tails, j)\n        if k == len(tails): tails.append(j)\n        else: tails[k] = j\n    return len(tails)\n\nprint(hunt_szymanski("ABCBDAB", "BDCABA"))\n`},
+ "patience":{python:`def patience_diff(A, B):\n    # unique lines in both\n    from collections import Counter\n    ca, cb = Counter(A), Counter(B)\n    unique_a = {v for v, c in ca.items() if c == 1}\n    unique_b = {v for v, c in cb.items() if c == 1}\n    common = unique_a & unique_b\n    # match positions\n    a_pos = {v: i for i, v in enumerate(A) if v in common}\n    b_pos = {v: j for j, v in enumerate(B) if v in common}\n    matches = [(a_pos[v], b_pos[v]) for v in common]\n    matches.sort()\n    # LIS on second coordinate\n    from bisect import bisect_left\n    tails_idx = []\n    tails_val = []\n    prev = [-1] * len(matches)\n    for k, (i, j) in enumerate(matches):\n        idx = bisect_left(tails_val, j)\n        if idx == len(tails_val):\n            tails_val.append(j)\n            tails_idx.append(k)\n        else:\n            tails_val[idx] = j\n            tails_idx[idx] = k\n        if idx > 0:\n            prev[k] = tails_idx[idx - 1]\n    # reconstruct\n    seq = []\n    if tails_idx:\n        cur = tails_idx[-1]\n        while cur != -1:\n            seq.append(matches[cur])\n            cur = prev[cur]\n        seq.reverse()\n    return seq\n\nprint(patience_diff("a b c d e".split(), "a b x d e".split()))\n`},
+ "histogram":{python:`def histogram_diff(A, B):\n    from collections import Counter\n    ca, cb = Counter(A), Counter(B)\n    common = set(ca) & set(cb)\n    if not common:\n        return []\n    # pick element with lowest total count\n    x = min(common, key=lambda v: ca[v] + cb[v])\n    # split on first occurrence of x in each\n    ai = A.index(x)\n    bi = B.index(x)\n    return (\n        histogram_diff(A[:ai], B[:bi])\n        + [(ai, bi, x)]\n        + histogram_diff(A[ai+1:], B[bi+1:])\n    )\n\nprint(histogram_diff("ABABAB".split(), "BABABA".split()))\n`},
+ "three-way":{python:`def three_way_merge(base, ours, theirs):\n    result = []\n    conflicts = []\n    # Simplified line-by-line; a real implementation aligns regions\n    n = max(len(base), len(ours), len(theirs))\n    i = j = k = 0\n    while i < len(base) or j < len(ours) or k < len(theirs):\n        b = base[i] if i < len(base) else None\n        o = ours[j] if j < len(ours) else None\n        t = theirs[k] if k < len(theirs) else None\n        if o == t:\n            if o is not None: result.append(o)\n            if o == b: i += 1\n            j += 1; k += 1\n        elif o == b:\n            if t is not None and t != b: result.append(t)\n            i += 1; k += 1\n        elif t == b:\n            if o is not None and o != b: result.append(o)\n            i += 1; j += 1\n        else:\n            conflicts.append((b, o, t))\n            result.append(f"<<<<<<< ours\\n{o}\\n=======\\n{t}\\n>>>>>>> theirs")\n            i += 1; j += 1; k += 1\n    return result, conflicts\n\nbase = "A B C D E".split()\nours = "A B X D E".split()\ntheirs = "A B C Y E".split()\nprint(three_way_merge(base, ours, theirs))\n`},
+ "json-merge":{python:`def json_merge(base, ours, theirs):\n    if ours == theirs: return ours\n    if ours == base: return theirs\n    if theirs == base: return ours\n    if all(isinstance(x, dict) for x in (base, ours, theirs)):\n        keys = set(base) | set(ours) | set(theirs)\n        return {k: json_merge(base.get(k), ours.get(k), theirs.get(k)) for k in keys}\n    if all(isinstance(x, list) for x in (base, ours, theirs)) and len(ours) == len(theirs) == len(base):\n        return [json_merge(b, o, t) for b, o, t in zip(base, ours, theirs)]\n    return {"conflict": {"base": base, "ours": ours, "theirs": theirs}}\n\nimport json\nbase = {"a": 1, "b": 2, "c": [1, 2, 3]}\nours = {"a": 1, "b": 3, "c": [1, 9, 3]}\ntheirs = {"a": 1, "b": 2, "c": [1, 2, 4]}\nprint(json.dumps(json_merge(base, ours, theirs), indent=2))\n`},
+ "ot":{python:`def transform(op, concurrent, site):\n    if op["type"] == "ins" and concurrent["type"] == "ins":\n        if concurrent["pos"] < op["pos"] or (concurrent["pos"] == op["pos"] and concurrent["site"] < site):\n            return {"type": "ins", "pos": op["pos"] + 1, "char": op["char"]}\n        return op\n    if op["type"] == "ins" and concurrent["type"] == "del":\n        return {"type": "ins", "pos": op["pos"] - (1 if concurrent["pos"] < op["pos"] else 0), "char": op["char"]}\n    if op["type"] == "del" and concurrent["type"] == "ins":\n        return {"type": "del", "pos": op["pos"] + (1 if concurrent["pos"] < op["pos"] else 0)}\n    if op["type"] == "del" and concurrent["type"] == "del":\n        return {"type": "del", "pos": op["pos"] - (1 if concurrent["pos"] < op["pos"] else 0)}\n    return op\n\nop = {"type": "ins", "pos": 3, "char": "x"}\nconc = {"type": "ins", "pos": 1, "char": "y", "site": 2}\nprint(transform(op, conc, site=1))\n`},
+ "crdt":{python:`class GCounter:\n    def __init__(self, n):\n        self.n = n\n        self.counts = [0] * n\n    def inc(self, replica, amount=1):\n        self.counts[replica] += amount\n    def value(self):\n        return sum(self.counts)\n    def merge(self, other):\n        self.counts = [max(a, b) for a, b in zip(self.counts, other.counts)]\n\na = GCounter(3); a.inc(0, 5); a.inc(2, 3)\nb = GCounter(3); b.inc(1, 4); b.inc(2, 1)\na.merge(b)\nprint("G-Counter value:", a.value())\n\nclass LWWRegister:\n    def __init__(self):\n        self.value = None\n        self.ts = 0\n    def set(self, value, ts):\n        if ts > self.ts:\n            self.value, self.ts = value, ts\n    def merge(self, other):\n        if other.ts > self.ts:\n            self.value, self.ts = other.value, other.ts\n\nr1 = LWWRegister(); r1.set("a", 1)\nr2 = LWWRegister(); r2.set("b", 2)\nr1.merge(r2)\nprint("LWW value:", r1.value)\n`},
+ "vclock":{python:`class VectorClock:\n    def __init__(self, n, pid):\n        self.v = [0] * n\n        self.pid = pid\n    def tick(self):\n        self.v[self.pid] += 1\n        return self.v[:]\n    def send(self):\n        return self.tick()\n    def receive(self, other):\n        self.v = [max(a, b) for a, b in zip(self.v, other)]\n        self.v[self.pid] += 1\n        return self.v[:]\n\ndef compare(a, b):\n    if a == b: return "equal"\n    le = all(x <= y for x, y in zip(a, b))\n    ge = all(x >= y for x, y in zip(a, b))\n    if le: return "before"\n    if ge: return "after"\n    return "concurrent"\n\na = VectorClock(3, 0); a.tick()\nb = VectorClock(3, 1); b.tick()\nprint("a:", a.v, "b:", b.v, "relation:", compare(a.v, b.v))\n`},
+ "rsync":{python:`def rolling_hash(s):\n    return hash(tuple(s)) & 0xffff\n\ndef rsync(receiver_blocks, sender):\n    ops = []\n    i = 0\n    literal = []\n    while i < len(sender):\n        matched = False\n        for block, offset in receiver_blocks:\n            if sender[i:i+len(block)] == block:\n                if literal:\n                    ops.append(("lit", "".join(literal)))\n                    literal = []\n                ops.append(("ref", offset))\n                i += len(block)\n                matched = True\n                break\n        if not matched:\n            literal.append(sender[i])\n            i += 1\n    if literal:\n        ops.append(("lit", "".join(literal)))\n    return ops\n\nreceiver = "The quick brown fox."\nblock_size = 8\nblocks = [(list(receiver[i:i+block_size]), i) for i in range(0, len(receiver), block_size)]\nsender = "The quick brown cat."\nprint(rsync(blocks, sender))\n`},
+ "merkle":{python:`import hashlib\n\ndef leaf_hash(x):\n    return hashlib.sha256(x.encode()).hexdigest()[:8]\n\ndef build_merkle(leaves):\n    level = [(x, leaf_hash(x)) for x in leaves]\n    levels = [level]\n    while len(level) > 1:\n        nxt = []\n        for i in range(0, len(level), 2):\n            l = level[i]\n            r = level[i+1] if i+1 < len(level) else level[i]\n            h = hashlib.sha256((l[1] + r[1]).encode()).hexdigest()[:8]\n            nxt.append((None, h))\n        levels.append(nxt)\n        level = nxt\n    return levels\n\nleaves = ["a", "b", "c", "d"]\nlevels = build_merkle(leaves)\nfor lvl in levels:\n    print([h for _, h in lvl])\n`},
+ "git-obj":{python:`import hashlib, zlib\n\ndef git_object(obj_type, content):\n    header = f"{obj_type} {len(content)}\\0".encode()\n    store = header + content\n    sha = hashlib.sha1(store).hexdigest()\n    compressed = zlib.compress(store)\n    return sha, compressed\n\nsha, _ = git_object("blob", b"hello world\\n")\nprint("blob hash:", sha)\n# verify against: echo -n 'hello world' | git hash-object --stdin\n# -> 3b18e512dba79e4c8300dd08aeb37f8e728b8dad\n`},
+ "cdc":{python:`def cdc(data, min_size, avg_bits, max_size):\n    mask = (1 << avg_bits) - 1\n    chunks = []\n    start = 0\n    i = 0\n    while i < len(data):\n        h = hash(data[max(start, i - 16):i+1]) & mask\n        if i - start >= min_size and (h == 0 or i - start >= max_size):\n            chunks.append((start, i+1))\n            start = i+1\n        i += 1\n    if start < len(data):\n        chunks.append((start, len(data)))\n    return chunks\n\ndata = "The quick brown fox jumps over the lazy dog. " * 10\nprint(cdc(data, 16, 4, 64))\n`},
+ "fastcdc":{python:`G = [ (i * 0x9E3779B1) & 0xFFFFFFFF for i in range(256) ]\n\ndef fastcdc(data, min_size, normal_size, max_size):\n    strict_mask = (1 << 13) - 1\n    loose_mask = (1 << 10) - 1\n    chunks = []\n    start = 0\n    h = 0\n    i = 0\n    while i < len(data):\n        h = ((h << 1) + G[ord(data[i]) & 0xFF]) & 0xFFFFFFFF\n        length = i - start + 1\n        if length < min_size:\n            i += 1; continue\n        mask = strict_mask if length < normal_size else loose_mask\n        if (h & mask) == 0 or length >= max_size:\n            chunks.append((start, i+1))\n            start = i+1\n            h = 0\n        i += 1\n    if start < len(data):\n        chunks.append((start, len(data)))\n    return chunks\n\ndata = "The quick brown fox jumps over the lazy dog. " * 10\nprint(fastcdc(data, 16, 64, 128))\n`},
+ "generic":{python:`# See the lesson text and pseudocode for details.\nprint("Concept lesson: see pseudocode for the full algorithm.")\n`}
+};
+
+/* ============================================================
+   Demos
+   ============================================================ */
+function demoLcs(text){
+ const [A, B] = parseTwoBlocks(text);
+ const L = lcsTable(A, B);
+ const sub = lcsBacktrack(A, B, L);
+ // limit table size for display
+ const maxDisp = 12;
+ let table = '   ' + ['', ...B.slice(0, maxDisp)].map(s=>s.slice(0,2).padStart(2)).join(' ') + '\n';
+ for(let i=0;i<=Math.min(A.length, maxDisp);i++){
+  table += (i===0?' ':A[i-1].slice(0,2).padStart(2)) + ' ';
+  for(let j=0;j<=Math.min(B.length, maxDisp);j++){
+   table += L[i][j].toString().padStart(2) + ' ';
+  }
+  table += '\n';
+ }
+ return{
+  encoded:`A = [${A.join(', ')}]\nB = [${B.join(', ')}]\n\nLCS length: ${L[A.length][B.length]}\nLCS: [${sub.join(', ')}]\n\nDP table (truncated to ${maxDisp}x${maxDisp}):\n${table}`,
+  decoded:`LCS uses a DP table. Cell (i,j) is the LCS length of the first i of A and first j of B. Backtracking gives one LCS.`
+ };
+}
+function demoEditScript(text){
+ const [A, B] = parseTwoBlocks(text);
+ const edits = myersDiff(A, B);
+ const stats = diffStats(edits);
+ const unified = unifiedDiff(edits, 3);
+ return{
+  html:`<div>${renderUnifiedDiff(unified)}</div>`,
+  encoded:`A: ${A.length} lines\nB: ${B.length} lines\n\nInsertions: ${stats.ins}\nDeletions:  ${stats.del}\nContext:    ${stats.keep}\n\nUnified diff (see left):`,
+  decoded:`Unified diff encodes an edit script. @@ headers mark hunks. - lines are deletions, + are insertions.`
+ };
+}
+function demoEditCosts(text){
+ const lines = text.trim().split(/\n/);
+ const A = (lines[0]||'').split('');
+ const B = (lines[1]||'').split('');
+ const costs = (lines[2]||'1 1 1').split(/\s+/).map(Number);
+ const [wi, wd, ws] = [costs[0]??1, costs[1]??1, costs[2]??1];
+ const n = A.length, m = B.length;
+ const D = Array.from({length:n+1}, ()=>new Array(m+1).fill(0));
+ for(let i=0;i<=n;i++) D[i][0] = i*wd;
+ for(let j=0;j<=m;j++) D[0][j] = j*wi;
+ for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+  const sub = A[i-1] === B[j-1] ? 0 : ws;
+  D[i][j] = Math.min(D[i-1][j] + wd, D[i][j-1] + wi, D[i-1][j-1] + sub);
+ }
+ return{
+  encoded:`A = "${A.join('')}"\nB = "${B.join('')}"\nWeights: ins=${wi}, del=${wd}, sub=${ws}\n\nLevenshtein distance: ${D[n][m]}\n\nDP table (top-left corner):\n  ${Array.from({length:m+1},(_,j)=>D[0][j].toString().padStart(3)).join(' ')}\n${Array.from({length:Math.min(n+1,6)},(_,i)=>'  '+Array.from({length:m+1},(_,j)=>D[i][j].toString().padStart(3)).join(' ')).join('\n')}`,
+  decoded:`The cost model defines what counts as one edit. Unit costs give Levenshtein. Weighted costs shift the alignment.`
+ };
+}
+function demoMyers(text){
+ const [A, B] = parseTwoBlocks(text);
+ const edits = myersDiff(A, B);
+ const stats = diffStats(edits);
+ const unified = unifiedDiff(edits, 3);
+ return{
+  html:`<div>${renderUnifiedDiff(unified)}</div>`,
+  encoded:`Myers diff of A (${A.length} lines) and B (${B.length} lines)\n\nInsertions: ${stats.ins}\nDeletions:  ${stats.del}\nTotal edits (D): ${stats.ins + stats.del}\n\nUnified diff (see left):`,
+  decoded:`Myers finds the shortest edit script in O((N+M) D) time. D is the number of edits.`
+ };
+}
+function demoHunt(text){
+ const [A, B] = parseTwoBlocks(text);
+ // Count matching pairs
+ const posB = new Map();
+ B.forEach((b, j)=>{ if(!posB.has(b)) posB.set(b, []); posB.get(b).push(j); });
+ let r = 0;
+ A.forEach(a=>{ if(posB.has(a)) r += posB.get(a).length; });
+ // LIS on j (matching pairs)
+ const pairs = [];
+ A.forEach((a, i)=>{ if(posB.has(a)) for(const j of posB.get(a)) pairs.push([i, j]); });
+ // LIS on j
+ const tails = [];
+ for(const [, j] of pairs){
+  let k = 0;
+  while(k < tails.length && tails[k] < j) k++;
+  if(k === tails.length) tails.push(j);
+  else tails[k] = j;
+ }
+ return{
+  encoded:`A = [${A.join(', ')}]\nB = [${B.join(', ')}]\n\nMatching pairs r: ${r}\nLCS length (via LIS on j): ${tails.length}\n\nCost: O((r + n) log n) ≈ ${Math.round((r + A.length) * Math.log2(A.length||2))} operations`,
+  decoded:`Hunt-Szymanski collects matching pairs and finds the longest increasing subsequence of the j values. Fast when matches are sparse.`
+ };
+}
+function demoPatience(text){
+ const [A, B] = parseTwoBlocks(text);
+ const ca = new Map(), cb = new Map();
+ A.forEach(a=>ca.set(a, (ca.get(a)||0)+1));
+ B.forEach(b=>cb.set(b, (cb.get(b)||0)+1));
+ const uniqueA = [...ca.entries()].filter(([, c])=>c===1).map(([v])=>v);
+ const uniqueB = [...cb.entries()].filter(([, c])=>c===1).map(([v])=>v);
+ const common = new Set(uniqueA.filter(v=>uniqueB.includes(v)));
+ const aPos = new Map(); A.forEach((v, i)=>{ if(common.has(v)) aPos.set(v, i); });
+ const bPos = new Map(); B.forEach((v, j)=>{ if(common.has(v)) bPos.set(v, j); });
+ const matches = [...common].map(v=>[aPos.get(v), bPos.get(v)]).sort((a,b)=>a[0]-b[0]);
+ const uniqList = [...common];
+ // Now do Myers on the segments between anchors
+ // For simplicity, just run Myers on the whole thing and show the anchors
+ const edits = myersDiff(A, B);
+ const unified = unifiedDiff(edits, 3);
+ return{
+  html:`<div>${renderUnifiedDiff(unified)}</div>`,
+  encoded:`A = [${A.join(', ')}]\nB = [${B.join(', ')}]\n\nUnique lines in A: ${uniqueA.length}\nUnique lines in B: ${uniqueB.length}\nCommon unique lines (anchors): [${uniqList.join(', ')}]\nAnchors: ${matches.length}\n\nDiff (Myers for gaps, see left):`,
+  decoded:`Patience diff matches unique lines as anchors, then recurses between them. It produces more readable diffs but is not minimal.`
+ };
+}
+function demoHistogram(text){
+ const [A, B] = parseTwoBlocks(text);
+ const ca = new Map(), cb = new Map();
+ A.forEach(a=>ca.set(a, (ca.get(a)||0)+1));
+ B.forEach(b=>cb.set(b, (cb.get(b)||0)+1));
+ const common = [...ca.keys()].filter(k=>cb.has(k));
+ let bestKey = null, bestCount = Infinity;
+ for(const k of common){
+  const c = ca.get(k) + cb.get(k);
+  if(c < bestCount){bestCount = c; bestKey = k;}
+ }
+ const edits = myersDiff(A, B);
+ const unified = unifiedDiff(edits, 3);
+ return{
+  html:`<div>${renderUnifiedDiff(unified)}</div>`,
+  encoded:`A = [${A.join(', ')}]\nB = [${B.join(', ')}]\n\nCommon elements: ${common.length}\nChosen anchor: ${bestKey} (total count ${bestCount})\n\nDiff (Myers, see left):`,
+  decoded:`Histogram diff picks the rarest common element as the anchor, then recurses. Similar to patience but no uniqueness requirement.`
+ };
+}
+function demoThreeWay(text){
+ const [base, ours, theirs] = parseThreeBlocks(text);
+ const {result, conflicts} = threeWayMerge(base, ours, theirs);
+ return{
+  html:`<div>${renderMergeResult(result)}</div>`,
+  encoded:`Base:   ${base.length} lines\nOurs:   ${ours.length} lines\nTheirs: ${theirs.length} lines\n\nConflicts: ${conflicts.length}\n\nMerged output (see left)`,
+  decoded:`Three-way merge compares ours and theirs against base. Regions changed on one side are taken; regions changed on both differently conflict.`
+ };
+}
+function demoJsonMerge(text){
+ const blocks = text.split(/\n---\n/);
+ let base, ours, theirs;
+ try{
+  base = JSON.parse(blocks[0]);
+  ours = JSON.parse(blocks[1]);
+  theirs = JSON.parse(blocks[2]);
+ }catch(e){
+  return {encoded:'Invalid JSON', decoded:e.message};
+ }
+ function merge(b, o, t){
+  if(JSON.stringify(o) === JSON.stringify(t)) return o;
+  if(JSON.stringify(o) === JSON.stringify(b)) return t;
+  if(JSON.stringify(t) === JSON.stringify(b)) return o;
+  if(b && o && t && typeof b === 'object' && typeof o === 'object' && typeof t === 'object' && !Array.isArray(b) && !Array.isArray(o) && !Array.isArray(t)){
+   const keys = new Set([...Object.keys(b), ...Object.keys(o), ...Object.keys(t)]);
+   const out = {};
+   for(const k of keys) out[k] = merge(b[k], o[k], t[k]);
+   return out;
+  }
+  if(Array.isArray(b) && Array.isArray(o) && Array.isArray(t) && b.length === o.length && o.length === t.length){
+   return b.map((_, i)=>merge(b[i], o[i], t[i]));
+  }
+  return {__conflict__: {base: b, ours: o, theirs: t}};
+ }
+ const result = merge(base, ours, theirs);
+ return{
+  encoded:`Base:   ${JSON.stringify(base)}\nOurs:   ${JSON.stringify(ours)}\nTheirs: ${JSON.stringify(theirs)}\n\nMerged:\n${JSON.stringify(result, null, 2)}`,
+  decoded:`JSON merge recurses on objects and (index-aligned) arrays. Scalars conflict when both sides differ from base.`
+ };
+}
+function demoOt(text){
+ const lines = text.trim().split(/\n/);
+ // Format: opType pos char, then concurrent op
+ const opLine = lines[0].split(/\s+/);
+ const concLine = lines[1].split(/\s+/);
+ const op = {type: opLine[0]==='insert'?'ins':'del', pos: parseInt(opLine[1]), char: opLine[2]||''};
+ const conc = {type: concLine[0]==='insert'?'ins':'del', pos: parseInt(concLine[1]), char: concLine[2]||'', siteId: parseInt(concLine[3]||'2')};
+ const siteId = 1;
+ const transformed = applyOt(op, conc, siteId);
+ return{
+  encoded:`Original op:   ${JSON.stringify(op)}\nConcurrent op: ${JSON.stringify(conc)}\nSite: ${siteId}\n\nTransformed op: ${JSON.stringify(transformed)}\n\nTransform rules:\n  insert vs insert: shift position by 1 if concurrent is to the left (or ties by site id)\n  insert vs delete: shift if delete is to the left\n  delete vs insert: shift if insert is to the left\n  delete vs delete: shift if concurrent delete is to the left`,
+  decoded:`OT transforms concurrent operations so they commute. A central server gives a total order for correct transformation.`
+ };
+}
+function demoCrdt(text){
+ const lines = text.trim().split(/\n/);
+ const n = parseInt(lines[0])||3;
+ // G-Counter: each line is "replica delta"
+ const counts = new Array(n).fill(0);
+ const updates = lines.slice(1).map(l=>l.split(/\s+/).map(Number));
+ updates.forEach(([r, d])=>{ if(r<n && d) counts[r] += d; });
+ // LWW
+ let lwwValue = null, lwwTs = 0;
+ updates.forEach(([r, d])=>{ if(d > lwwTs){lwwValue = r; lwwTs = d;} });
+ // OR-Set
+ const orAdds = new Map();
+ const orRemoves = new Set();
+ let tagCtr = 0;
+ updates.forEach(([r, d])=>{ tagCtr++; orAdds.set('t'+tagCtr, r+':'+d); });
+ const gvalue = counts.reduce((a,b)=>a+b, 0);
+ return{
+  encoded:`Replicas: ${n}\nUpdates: ${updates.length}\n\nG-Counter per replica: [${counts.join(', ')}]\nG-Counter value: ${gvalue}\n\nLWW-Register: value=${lwwValue}, ts=${lwwTs}\nOR-Set tags: ${[...orAdds.keys()].join(', ')}\nOR-Set elements: ${orSetElements({adds: orAdds, removes: orRemoves}).join(', ')}`,
+  decoded:`A G-Counter sums per-replica counters. An LWW-Register picks the largest timestamp. An OR-Set keeps unique tags for adds. Merge is join (least upper bound).`
+ };
+}
+function demoVclock(text){
+ const lines = text.trim().split(/\n/);
+ const n = parseInt(lines[0])||3;
+ const events = lines.slice(1).map(l=>l.split(/\s+/).map(Number));
+ // Simulate: each line is a vector clock state
+ const clocks = events;
+ const relations = [];
+ for(let i=0;i<clocks.length;i++){
+  for(let j=i+1;j<clocks.length;j++){
+   const a = clocks[i], b = clocks[j];
+   const le = a.every((x,k)=>x<=b[k]);
+   const ge = a.every((x,k)=>x>=b[k]);
+   let rel;
+   if(a.every((x,k)=>x===b[k])) rel = 'equal';
+   else if(le) rel = 'a < b';
+   else if(ge) rel = 'a > b';
+   else rel = 'concurrent';
+   relations.push(`  V${i} vs V${j}: ${rel}`);
+  }
+ }
+ const rows = clocks.map((v, i)=>`  V${i}: [${v.join(', ')}]`);
+ return{
+  encoded:`Replicas: ${n}\nClocks:\n${rows.join('\n')}\n\nPairwise relations:\n${relations.join('\n')}`,
+  decoded:`Vector clocks track causality. V(a) < V(b) means a happened before b. Neither less nor greater means concurrent.`
+ };
+}
+function demoRsync(text){
+ const [sender, receiver] = parseTwoBlocks(text);
+ const blockSize = 8;
+ const {rBlocks, ops} = rsyncMatch(sender, receiver, blockSize);
+ let transferred = 0;
+ const out = [];
+ ops.forEach(op=>{
+  if(op.type === 'ref'){
+   out.push(`  REF block offset=${op.offset} length=${op.length}`);
+  } else {
+   transferred += op.text.length;
+   out.push(`  LIT ${op.text.length} bytes: "${op.text}"`);
+  }
+ });
+ const totalBytes = sender.join('\n').length;
+ return{
+  encoded:`Sender size:   ${totalBytes} bytes\nReceiver size: ${receiver.join('\n').length} bytes\nBlock size:    ${blockSize}\nReceiver blocks: ${rBlocks.length}\n\nOperations:\n${out.join('\n')}\n\nLiteral bytes transferred: ${transferred} (${((transferred/totalBytes)*100).toFixed(0)}% of sender)`,
+  decoded:`rsync hashes fixed-size blocks of the receiver. The sender slides a window and references matching blocks, sending only literals for unmatched regions.`
+ };
+}
+function demoMerkle(text){
+ const lines = text.trim().split(/\n/);
+ const nLeaves = parseInt(lines[0])||8;
+ const changeIdx = parseInt(lines[1])||3;
+ const leaves = Array.from({length:nLeaves}, (_, i)=>`data-${i}`);
+ const levels = merkleTree(leaves);
+ const changedLeaves = leaves.slice();
+ changedLeaves[changeIdx] = 'data-X';
+ const levels2 = merkleTree(changedLeaves);
+ const diff = merkleDiff(levels, levels2, levels.length-1);
+ // Display levels
+ const show = levels.map((lvl, i)=>`  level ${i}: [${lvl.map(n=>n.hash.toString(16).slice(0,6)).join(', ')}]`);
+ return{
+  encoded:`Leaves: ${nLeaves}\nChanged leaf index: ${changeIdx}\n\nMerkle levels (first 6 chars of hash):\n${show.join('\n')}\n\nRoot changed: ${levels[levels.length-1][0].hash !== levels2[levels2.length-1][0].hash}\n\nChanged leaves (via descent):\n${(diff.changes||[]).map(c=>`  ${c.a} -> ${c.b}`).join('\n') || '  (none)'}`,
+  decoded:`A Merkle tree hashes leaves and internal nodes. Comparing roots detects any change. Descent visits only the differing subtree.`
+ };
+}
+function demoGitObj(text){
+ const lines = text.trim().split(/\n/);
+ const content = lines[0]||'hello world';
+ const type = (lines[1]||'blob').trim();
+ // Simulate Git object hashing with a simple SHA-1-like (we can't use real SHA-1 in browser easily)
+ // Actually we can use SubtleCrypto but it's async. Use a simplified hash for display.
+ const header = `${type} ${content.length}\0`;
+ const store = header + content;
+ let h = 0x67452301;
+ for(let i=0;i<store.length;i++) h = ((h * 31) + store.charCodeAt(i)) >>> 0;
+ const hex = h.toString(16).padStart(8, '0');
+ // Also compute djb2
+ const djb = djb2(store).toString(16).padStart(8, '0');
+ return{
+  encoded:`Type: ${type}\nContent: "${content}"\nContent length: ${content.length}\n\nHeader: "${header.replace(/\0/g, '\\0')}"\nSerialisation: header + content\n\nSimulated hash (not SHA-1, for teaching): ${hex}\nDJB2 (short fingerprint): ${djb}\n\nReal Git uses SHA-1:\n  sha1(header + content)\n  e.g., "hello world\\n" -> 3b18e512dba79e4c8300dd08aeb37f8e728b8dad\n\nThe full object ID is content-addressed.\nSame content -> same ID -> deduplication.`,
+  decoded:`Every Git object is serialised as '<type> <size>\\0<payload>' and hashed. The hash is the object ID. Content addressing gives automatic deduplication.`
+ };
+}
+function demoPackfile(text){
+ const [nObj, nPacked, avgChain] = parseNums(text);
+ const loose = nObj||100;
+ const packed = nPacked||20;
+ const chain = avgChain||3;
+ const avgLooseSize = 500;
+ const avgPackedSize = 100;
+ const totalLoose = loose * avgLooseSize;
+ const totalPacked = packed * avgPackedSize;
+ return{
+  encoded:`Loose objects: ${loose}\nPacked objects: ${packed}\nAverage delta chain depth: ${chain}\n\nEstimated sizes:\n  Loose: ${totalLoose} bytes (${loose} objects * ${avgLooseSize} B avg)\n  Packed: ${totalPacked} bytes (${packed} objects * ${avgPackedSize} B avg)\n  Savings: ${((1 - totalPacked/totalLoose)*100).toFixed(0)}%\n\nRead cost per object:\n  loose: O(1)\n  packed: O(chain depth) = O(${chain})`,
+  decoded:`Packfiles group many objects and delta-compress similar ones. Depth is bounded (~50) to keep read times reasonable. Git repacks periodically.`
+ };
+}
+function demoCdc(text){
+ const [size, minSize, avgBits] = parseNums(text);
+ const n = Math.min(4096, size||256);
+ const minS = minSize||16;
+ const bits = avgBits||1024;
+ let data = '';
+ let s = 42;
+ for(let i=0;i<n;i++){ s = (s * 1103515245 + 12345) >>> 0; data += String.fromCharCode(97 + (s % 26)); }
+ // CDC with a simple rolling hash
+ const mask = (1 << Math.round(Math.log2(bits))) - 1;
+ const chunks = [];
+ let start = 0, h = 0;
+ for(let i=0;i<data.length;i++){
+  h = ((h << 1) ^ data.charCodeAt(i)) >>> 0;
+  if(i - start >= minS && (h & mask) === 0){
+   chunks.push({start, end:i+1, len: i+1-start});
+   start = i+1;
+   h = 0;
+  }
+ }
+ if(start < data.length) chunks.push({start, end:data.length, len:data.length-start});
+ const sizes = chunks.map(c=>c.len);
+ const mean = sizes.reduce((a,b)=>a+b, 0) / sizes.length;
+ const variance = sizes.reduce((s,x)=>s+(x-mean)**2, 0) / sizes.length;
+ return{
+  encoded:`Data: ${n} bytes\nMin chunk: ${minS}\nTarget avg: ${1<<Math.round(Math.log2(bits))}\n\nChunks: ${chunks.length}\nMean size: ${mean.toFixed(1)}\nStd dev: ${Math.sqrt(variance).toFixed(1)}\n\nFirst 12 chunks:\n${chunks.slice(0,12).map((c,i)=>`  chunk ${i}: [${c.start}, ${c.end}) len=${c.len}`).join('\n')}`,
+  decoded:`Content-defined chunking cuts where a rolling hash matches a pattern. Boundaries depend on content, not position, so insertions shift only nearby chunks.`
+ };
+}
+function demoFastCdc(text){
+ const [size, minSize, normalSize] = parseNums(text);
+ const n = Math.min(4096, size||256);
+ const minS = minSize||16;
+ const normalS = normalSize||64;
+ const data = Array.from({length:n}, (_, i)=>String.fromCharCode(97 + (i % 26))).join('');
+ const maxS = normalS * 4;
+ const chunks = fastCDCChunks(data, minS, normalS, maxS);
+ const sizes = chunks.map(c=>c.len);
+ const mean = sizes.reduce((a,b)=>a+b, 0) / sizes.length;
+ const variance = sizes.reduce((s,x)=>s+(x-mean)**2, 0) / sizes.length;
+ return{
+  encoded:`Data: ${n} bytes\nMin: ${minS}\nNormal: ${normalS}\nMax: ${maxS}\n\nChunks: ${chunks.length}\nMean size: ${mean.toFixed(1)}\nStd dev: ${Math.sqrt(variance).toFixed(1)}\n\nFirst 12 chunks:\n${chunks.slice(0,12).map((c,i)=>`  chunk ${i}: [${c.start}, ${c.end}) len=${c.len}`).join('\n')}`,
+  decoded:`FastCDC uses a gear hash (one shift and add per byte) with normalized chunking. Cuts are less likely before the normal size, tightening the distribution.`
+ };
+}
+
+/* ============================================================
+   Lab dispatcher
+   ============================================================ */
+function runLab(l,initial){
+ const input=$('#labInput').value;
+ let res;
+ try{
+  if(!initial){$('#labEncoded').textContent='Running…';$('#labDecoded').textContent=''}
+  switch(l.demo){
+   case'lcs':res=demoLcs(input);break;
+   case'edit-script':res=demoEditScript(input);break;
+   case'edit-costs':res=demoEditCosts(input);break;
+   case'myers':res=demoMyers(input);break;
+   case'hunt':res=demoHunt(input);break;
+   case'patience':res=demoPatience(input);break;
+   case'histogram':res=demoHistogram(input);break;
+   case'three-way':res=demoThreeWay(input);break;
+   case'json-merge':res=demoJsonMerge(input);break;
+   case'ot':res=demoOt(input);break;
+   case'crdt':res=demoCrdt(input);break;
+   case'vclock':res=demoVclock(input);break;
+   case'rsync':res=demoRsync(input);break;
+   case'merkle':res=demoMerkle(input);break;
+   case'git-obj':res=demoGitObj(input);break;
+   case'packfile':res=demoPackfile(input);break;
+   case'cdc':res=demoCdc(input);break;
+   case'fastcdc':res=demoFastCdc(input);break;
+   default:throw Error('No interactive implementation is available for this lesson.');
+  }
+ }catch(e){
+  res={encoded:'Input or runtime error',decoded:e.message};
+ }
+ const el=$('#labEncoded');
+ if(res.html){el.innerHTML=res.html+'\n\n'+res.encoded}else{el.textContent=res.encoded}
+ $('#labDecoded').textContent=res.decoded;
+ if(!initial)toast('Lab complete');
+}
+
+/* ============================================================
+   State and shell
+   ============================================================ */
+const state={page:'home',current:null,completed:new Set(),bookmarks:new Set(),theme:'system',drafts:{}};
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1900)}
+function save(){try{localStorage.setItem('az-vcs-lab-v1',JSON.stringify({schemaVersion:1,completed:[...state.completed],bookmarks:[...state.bookmarks],theme:state.theme,current:state.current,drafts:state.drafts}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem('az-vcs-lab-v1')||'null');if(!d||d.schemaVersion!==1)return;
+ state.completed=new Set((d.completed||[]).filter(id=>byId[id]));
+ state.bookmarks=new Set((d.bookmarks||[]).filter(id=>byId[id]));
+ state.theme=['system','light','dark'].includes(d.theme)?d.theme:'system';
+ state.current=byId[d.current]?d.current:null;
+ state.drafts=d.drafts&&typeof d.drafts==='object'?d.drafts:{};
+}catch(e){}}
+function applyTheme(){let t=state.theme;if(t==='system')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t;$('#themeSelect').value=state.theme}
+function getChapter(id){return CHAPTERS.find(c=>c.ids.includes(id))||CHAPTERS[0]}
+function progress(){
+ const n=state.completed.size,t=LESSONS.length;
+ $('#progressText').textContent=`${n} / ${t}`;
+ $('#progressFill').style.width=(n/t*100)+'%';
+ $('#lessonCount').textContent=t+' lessons';
+ $('#catalogCount').textContent=`${CHAPTERS.length} chapters · ${t} lessons · ${LESSONS.filter(l=>l.demo&&l.demo!=='none').length} labs`;
+ $('#progressBar').setAttribute('aria-valuenow',String(Math.round(n/t*100)));
+}
+function renderTree(){
+ const q=$('#searchInput').value.toLowerCase().trim(),ch=$('#chapterFilter').value;
+ const root=$('#courseTree');root.textContent='';
+ for(const c of CHAPTERS){
+  if(ch!=='all'&&c.id!==ch)continue;
+  const rows=c.ids.map(id=>byId[id]).filter(x=>x&&(!q||(x.title+' '+x.summary+' '+x.kind+' '+c.title).toLowerCase().includes(q)));
+  if(!rows.length)continue;
+  const group=document.createElement('section');
+  const label=document.createElement('div');label.className='group-label';
+  label.innerHTML=`<span>${esc(c.title)}</span><span>${rows.length}</span>`;
+  group.append(label);
+  rows.forEach(l=>{
+   const b=document.createElement('button');b.type='button';
+   b.className='link'+(state.current===l.id?' active':'');
+   b.dataset.lesson=l.id;
+   b.innerHTML=`<span class="num">${String(LESSONS.indexOf(l)+1).padStart(2,'0')}</span><span class="name">${esc(l.title)}</span>${state.completed.has(l.id)?'<span class="done" aria-label="completed">✓</span>':''}`;
+   group.append(b);
+  });
+  root.append(group);
+ }
+ if(!root.children.length)root.innerHTML='<p class="muted">No matching lessons. Try another search.</p>';
+ progress();
+}
+function listToHTML(a){return `<ol class="steps">${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`}
+function refsHTML(r){return r&&r.length?`<div class="references">${r.map(x=>`<a target="_blank" rel="noopener noreferrer" href="${esc(x[1])}">${esc(x[0])} ↗</a>`).join('')}</div>`:'<p class="muted">See the recommended textbooks and papers for a full treatment.</p>'}
+function codeRecord(l){if(l.codeKey==='none')return null;return CODE[l.codeKey]||CODE[l.demo]||CODE["generic"]}
+function codeText(l){
+ const c=codeRecord(l);
+ if(c&&c.python)return c.python;
+ return '# CONCEPT OUTLINE, NOT EXECUTABLE PYTHON\n# Lesson: '+l.title+'\n\n# Core idea\n# '+String(l.summary||'').replace(/\n/g,'\n# ')+'\n\n# Pseudocode from the lesson\n'+String(l.pseudo||'').split('\n').map(x=>'# '+x).join('\n')+'\n';
+}
+function statusClass(l){return /Runnable/.test(l.status)?'good':'warn'}
+
+function renderLesson(id){
+ const l=byId[id];if(!l){renderHome();return}
+ state.page='lesson';state.current=id;
+ const c=getChapter(id);const index=LESSONS.indexOf(l);const next=LESSONS[(index+1)%LESSONS.length];
+ const hasDemo=l.demo&&l.demo!=='none';
+ const demoArea=hasDemo?`<section class="panel"><div class="panel-head"><h2>${esc(l.demoTitle||'Interactive teaching lab')}</h2><p>Everything runs in your browser with plain JavaScript. This is a teaching implementation, not a production tool.</p></div><div class="body"><div class="lab-top"><label for="labInput">Input</label><button class="btn" id="resetSample">Reset sample</button><button class="btn primary" id="runLab">Run lab</button></div><textarea class="lab-input" id="labInput" aria-label="Lab input">${esc(l.sample||'')}</textarea><div class="notice info"><strong>Format:</strong> see the sample for the expected format. Labs take two blocks separated by a line containing <code>---</code>, or a single sequence of numbers.</div><div class="lab-cols"><div><div class="label">Output</div><div class="lab-output" id="labEncoded">Run the lab to see output.</div></div><div><div class="label">Explanation</div><div class="lab-output" id="labDecoded">Step notes appear here.</div></div></div></div></section>`:'';
+ const references=refsHTML(l.refs);
+ const code=state.drafts[id]??codeText(l);
+ $('#mainView').innerHTML=`<div class="breadcrumb">Diff &amp; VCS Lab / ${esc(c.title)}</div>
+<header class="header">
+ <div class="eyebrow">LESSON ${String(index+1).padStart(2,'0')} · ${esc(l.kind)}</div>
+ <h1>${esc(l.title)}</h1>
+ <p>${esc(l.summary)}</p>
+ <div class="tags"><span class="tag">Level ${l.level}</span><span class="tag ${statusClass(l)}">${esc(l.status)}</span><span class="tag">${esc(c.title.replace(/^\d+\.\s*/,''))}</span></div>
+ <div class="header-actions">
+  <button class="btn" id="bookmarkBtn">${state.bookmarks.has(id)?'★ Bookmarked':'☆ Bookmark'}</button>
+  <button class="btn primary" id="completeBtn">${state.completed.has(id)?'✓ Completed':'Mark complete'}</button>
+ </div>
+</header>
+<section class="panel"><div class="panel-head"><h2>1. Understand the idea</h2><p>Plain language and a mental picture</p></div><div class="body idea"><div><p>${esc(l.summary)}</p><p><strong>What problem it solves:</strong> ${esc(l.problem)}</p><div class="takeaway"><strong>Takeaway:</strong> ${esc(l.output)}</div></div><aside class="mental"><small>Mental picture</small><strong>${esc(l.mental)}</strong><p>${esc(l.mentalText)}</p></aside></div></section>
+<section class="panel"><div class="panel-head"><h2>2. Input and output</h2><p>Know what goes in and what comes out</p></div><div class="body two"><div class="mini"><h3>Input</h3><p>${esc(l.input)}</p></div><div class="mini"><h3>Output</h3><p>${esc(l.output)}</p></div></div></section>
+<section class="panel"><div class="panel-head"><h2>3. How it works</h2><p>Step by step, with the key rule that makes it correct</p></div><div class="body two"><div>${listToHTML(l.steps)}<div class="takeaway" style="margin-top:14px"><strong>Key rule:</strong> ${esc(l.invariant)}</div></div><pre class="pseudo">${esc(l.pseudo)}</pre></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Step</th><th>What happens</th><th>Why it matters</th></tr></thead><tbody>${l.trace.map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
+${demoArea}
+<section class="panel"><div class="panel-head"><h2>4. Cost and behavior</h2><p>Costs depend on input size and structure. These are scope labels, not universal benchmarks.</p></div><div class="body"><div class="tiles">${l.complexity.map((x,i)=>`<div class="tile"><span>${['Time','Memory','Interpretation'][i]}</span><strong>${esc(x.split(' ').slice(0,2).join(' '))}</strong><small>${esc(x)}</small></div>`).join('')}</div><div class="two" style="margin-top:12px"><div class="mini"><h3>Strengths</h3><p>${esc(l.strength)}</p></div><div class="mini"><h3>Limits</h3><p>${esc(l.limits)}</p></div></div></div></section>
+<section class="panel"><div class="panel-head"><h2>5. Code and usage</h2><p>Reference code is for learning. Real systems use vetted libraries.</p></div><div class="code-head"><div><span class="tag">${codeRecord(l)?'Python example':'Concept outline, not executable'}</span> <span class="tag">Editable</span></div><div class="header-actions" style="margin:0"><button class="btn" id="copyCode">Copy code</button><button class="btn" id="downloadCode">Download</button></div></div><textarea id="codeEditor" class="code-editor" spellcheck="false" aria-label="Editable Python code">${esc(code)}</textarea><div class="code-foot"><span>${codeRecord(l)?'Reference example. The in-page lab runs its own JavaScript implementation.':'Lesson-specific outline, not an implementation.'}</span><span id="codeStatus">Local draft</span></div><div class="body"><div class="mini"><h3>Where it is used</h3><p>${esc(l.uses)}</p></div><div class="notice" style="margin-top:12px"><strong>Common pitfall:</strong> ${esc(l.pitfall)}</div></div></section>
+<section class="panel"><div class="panel-head"><h2>6. Choices and alternatives</h2><p>Pick based on the data, constraints and the guarantee you need</p></div><div class="body two"><div class="mini"><h3>When to use this</h3><p>${esc(l.strength)}</p></div><div class="mini"><h3>When to use something else</h3><p>${esc(l.limits)}</p></div></div></section>
+<section class="panel"><div class="panel-head"><h2>7. Check yourself</h2><p>Try to answer before you open the explanation</p></div><div class="body"><details class="practice"><summary>${esc(l.question)}</summary><p>${esc(l.answer)}</p></details></div></section>
+<section class="panel"><div class="panel-head"><h2>8. References</h2><p>Standard references for this topic</p></div><div class="body">${references}<p class="muted" style="font-size:11.5px;margin-top:14px">The labs on this page are teaching implementations. For production work use git, libgit2, diff-match-patch, jsondiffpatch, yjs, Automerge, restic, or another vetted library.</p></div></section>
+<footer class="footer"><span>Az Diff &amp; VCS Lab · local learning</span><span>Lesson ${index+1} of ${LESSONS.length} · Next: ${esc(next.title)}</span><button class="btn" id="nextLesson">Next →</button></footer>`;
+
+ $('#bookmarkBtn').onclick=()=>{state.bookmarks.has(id)?state.bookmarks.delete(id):state.bookmarks.add(id);save();renderLesson(id);toast(state.bookmarks.has(id)?'Bookmarked':'Bookmark removed')};
+ $('#completeBtn').onclick=()=>{state.completed.has(id)?state.completed.delete(id):state.completed.add(id);save();renderTree();renderLesson(id);toast(state.completed.has(id)?'Lesson completed':'Completion removed')};
+ $('#nextLesson').onclick=()=>openLesson(next.id);
+ $('#copyCode').onclick=async()=>{const v=$('#codeEditor').value;try{await navigator.clipboard.writeText(v);toast('Code copied')}catch{const ta=$('#codeEditor');ta.select();document.execCommand('copy');toast('Code copied')}};
+ $('#downloadCode').onclick=()=>{const r=codeRecord(l);downloadText(`${id}.${r?'py':'txt'}`,$('#codeEditor').value,r?'text/x-python':'text/plain')};
+ $('#codeEditor').addEventListener('input',()=>{state.drafts[id]=$('#codeEditor').value;save();$('#codeStatus').textContent='Draft saved locally'});
+ if(hasDemo){
+  $('#runLab').onclick=()=>runLab(l);
+  $('#resetSample').onclick=()=>{$('#labInput').value=l.sample||'';$('#labEncoded').textContent='Run the lab to see output.';$('#labDecoded').textContent='Step notes appear here.'};
+  runLab(l,true);
+ }
+ renderTree();save();
+ if(location.hash!==`#${id}`)history.replaceState(null,'',`#${id}`);
+}
+
+function renderHome(){
+ state.page='home';
+ $('#mainView').innerHTML=`<div class="home-hero"><div class="eyebrow">AZ · ENGINEERING TOOLBOOK</div><h1>Diff, merge, synchronization and version control from LCS to content-defined chunking.</h1><p>A beginner friendly course covering sequence comparison, diff algorithms, three-way merge, structured merge, collaborative editing, rsync, Merkle trees, Git's object model, and modern chunking. Every lesson has a plain explanation and most have a runnable lab that runs entirely in the browser.</p><div class="header-actions" style="margin:0"><button class="btn primary" id="startFirst">Start at sequence comparison</button><button class="btn" id="resumeLesson">Continue lesson</button></div></div>
+<div class="stats"><div class="stat"><strong>${CHAPTERS.length}</strong><span>chapters</span></div><div class="stat"><strong>${LESSONS.length}</strong><span>lessons</span></div><div class="stat"><strong>${LESSONS.filter(l=>l.demo&&l.demo!=='none').length}</strong><span>runnable labs</span></div><div class="stat"><strong>1</strong><span>standalone HTML file</span></div></div>
+<section class="panel"><div class="panel-head"><h2>Honest scope</h2><p>One app covers the whole curriculum. Production version control and sync systems are a separate engineering effort.</p></div><div class="body two"><div class="mini"><h3>What runs here</h3><p>LCS DP table and backtrack, unified diff generation, weighted edit distance, Myers diff, Hunt-Szymanski, patience and histogram anchors, three-way merge with conflict markers, JSON merge, OT transform rules, G-Counter and LWW CRDTs, vector clocks, rsync block matching, Merkle tree descent, Git-style object hashing, packfile statistics, content-defined chunking, and FastCDC.</p></div><div class="mini"><h3>What does not run here</h3><p>Production Git operations, network sync, real SHA-1/SHA-256 hashing, distributed consensus for sync, and large-scale packfile operations. Use git, libgit2, diff-match-patch, yjs, Automerge, restic, casync, or another vetted library for real work.</p></div></div></section>
+<div class="panel"><div class="panel-head"><h2>Course map</h2><p>Pick a chapter. The path runs from sequence comparison to large-scale chunking.</p></div><div class="body"><div class="chapter-cards">${CHAPTERS.map((c,i)=>`<button class="chapter-card" data-chapter="${c.id}"><span class="num">CHAPTER ${String(i+1).padStart(2,'0')} · ${c.ids.length} LESSONS</span><strong>${esc(c.title.replace(/^\d+\.\s*/,''))}</strong><p>${esc(c.desc)}</p></button>`).join('')}</div></div></div>
+<footer class="footer"><span>Az Diff &amp; VCS Lab</span><span>Single file · no external runtime dependencies</span></footer>`;
+ $('#startFirst').onclick=()=>openLesson('lcs');
+ $('#resumeLesson').onclick=()=>openLesson(state.current&&byId[state.current]?state.current:'lcs');
+ $('#mainView').querySelectorAll('[data-chapter]').forEach(b=>b.onclick=()=>{const c=CHAPTERS.find(x=>x.id===b.dataset.chapter);if(c)openLesson(c.ids[0])});
+}
+
+function renderProgressPage(){
+ state.page='progress';
+ $('#mainView').innerHTML=`<div class="breadcrumb">Diff &amp; VCS Lab / Bookmarks & progress</div><header class="header"><div class="eyebrow">LOCAL ONLY</div><h1>Bookmarks and progress</h1><p>Your progress stays in this browser. Export the JSON to move it or keep a backup.</p></header>
+<section class="panel"><div class="panel-head"><h2>Completed lessons</h2></div><div class="body">${state.completed.size?`<div class="references">${[...state.completed].map(id=>`<a href="#${id}" data-open="${id}">${esc(byId[id].title)}</a>`).join('')}</div>`:'<p class="muted">No lessons marked complete yet.</p>'}</div></section>
+<section class="panel"><div class="panel-head"><h2>Bookmarks</h2></div><div class="body">${state.bookmarks.size?`<div class="references">${[...state.bookmarks].map(id=>`<a href="#${id}" data-open="${id}">${esc(byId[id].title)}</a>`).join('')}</div>`:'<p class="muted">No bookmarks yet.</p>'}</div></section>
+<section class="panel"><div class="panel-head"><h2>Progress data</h2></div><div class="body"><div class="header-actions" style="margin:0"><button class="btn primary" id="exportProgress">Export progress JSON</button><button class="btn" id="clearProgress">Clear completion marks</button></div><p class="muted" style="font-size:12.5px;margin-top:14px">Import accepts only known lesson IDs and a supported schema version.</p></div></section>`;
+ $('#mainView').querySelectorAll('[data-open]').forEach(a=>a.onclick=e=>{e.preventDefault();openLesson(a.dataset.open)});
+ $('#exportProgress').onclick=exportProgress;
+ $('#clearProgress').onclick=()=>{if(confirm('Clear all completion marks?')){state.completed.clear();save();renderProgressPage();renderTree();toast('Completion marks cleared')}};
+}
+
+function openLesson(id){if(!byId[id])return;renderLesson(id);renderTree();$('#mainView').focus({preventScroll:true});window.scrollTo(0,0)}
+function downloadText(name,text,type='text/plain'){const blob=new Blob([text],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),800)}
+function exportProgress(){downloadText('az-vcs-lab-progress.json',JSON.stringify({schemaVersion:1,completed:[...state.completed],bookmarks:[...state.bookmarks],theme:state.theme,current:state.current,drafts:state.drafts},null,2),'application/json');toast('Progress exported')}
+function importProgressFile(file){
+ if(file.size>2_000_000){toast('Import rejected: file too large');return}
+ const r=new FileReader();
+ r.onload=()=>{try{
+  const d=JSON.parse(r.result);
+  if(!d||d.schemaVersion!==1||!Array.isArray(d.completed)||!Array.isArray(d.bookmarks)||typeof d.drafts!=='object')throw Error('bad schema');
+  if([...d.completed,...d.bookmarks].some(id=>typeof id!=='string'||!byId[id]))throw Error('unknown id');
+  state.completed=new Set(d.completed);
+  state.bookmarks=new Set(d.bookmarks);
+  state.theme=['system','light','dark'].includes(d.theme)?d.theme:'system';
+  state.current=byId[d.current]?d.current:null;
+  state.drafts=Object.fromEntries(Object.entries(d.drafts).filter(([k,v])=>byId[k]&&typeof v==='string'&&v.length<100000));
+  applyTheme();save();renderTree();
+  state.current?openLesson(state.current):renderHome();
+  toast('Progress imported');
+ }catch(e){toast('Import rejected: invalid progress data')}};
+ r.readAsText(file);
+}
+
+function bindGlobal(){
+ $('#themeSelect').onchange=()=>{state.theme=$('#themeSelect').value;applyTheme();save()};
+ $('#printBtn').onclick=()=>print();
+ $('#exportBtn').onclick=exportProgress;
+ $('#importBtn').onclick=()=>$('#importFile').click();
+ $('#importFile').onchange=e=>{if(e.target.files[0])importProgressFile(e.target.files[0]);e.target.value=''};
+ $('#searchInput').oninput=renderTree;
+ $('#chapterFilter').onchange=renderTree;
+ $('#homeLink').onclick=e=>{e.preventDefault();renderHome();history.replaceState(null,'','#home')};
+ $('#courseTree').onclick=e=>{const b=e.target.closest('[data-lesson]');if(b)openLesson(b.dataset.lesson)};
+ document.querySelectorAll('[data-page="home"]').forEach(b=>b.onclick=renderHome);
+ document.querySelectorAll('[data-page="progress"]').forEach(b=>b.onclick=renderProgressPage);
+ document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('#searchInput').focus()}
+  if(e.key.toLowerCase()==='t'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+   state.theme=state.theme==='dark'?'light':state.theme==='light'?'system':'dark';
+   applyTheme();save();
+  }
+ });
+}
+
+function init(){
+ load();
+ applyTheme();
+ CHAPTERS.forEach(c=>{const op=document.createElement('option');op.value=c.id;op.textContent=c.title;$('#chapterFilter').append(op)});
+ bindGlobal();
+ renderTree();
+ const hash=location.hash.replace(/^#/,'');
+ if(hash&&byId[hash])renderLesson(hash);
+ else if(state.current&&byId[state.current])renderLesson(state.current);
+ else renderHome();
+ progress();
+}
+init();
+</script></body></html>
